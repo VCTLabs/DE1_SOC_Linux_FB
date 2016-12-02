@@ -1,5 +1,5 @@
 Flow report for DE1_SOC_Linux_FB
-Wed Nov 30 16:58:58 2016
+Fri Dec  2 13:11:20 2016
 Quartus Prime Version 16.1.0 Build 196 10/24/2016 SJ Lite Edition
 
 
@@ -41,15 +41,15 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Flow Summary                                                                  ;
 +---------------------------------+---------------------------------------------+
-; Flow Status                     ; Successful - Wed Nov 30 16:58:58 2016       ;
+; Flow Status                     ; Successful - Fri Dec  2 13:11:20 2016       ;
 ; Quartus Prime Version           ; 16.1.0 Build 196 10/24/2016 SJ Lite Edition ;
 ; Revision Name                   ; DE1_SOC_Linux_FB                            ;
 ; Top-level Entity Name           ; DE1_SOC_Linux_FB                            ;
 ; Family                          ; Cyclone V                                   ;
 ; Device                          ; 5CSEMA5F31C6                                ;
 ; Timing Models                   ; Final                                       ;
-; Logic utilization (in ALMs)     ; 4,156 / 32,070 ( 13 % )                     ;
-; Total registers                 ; 7306                                        ;
+; Logic utilization (in ALMs)     ; 4,153 / 32,070 ( 13 % )                     ;
+; Total registers                 ; 7346                                        ;
 ; Total pins                      ; 368 / 457 ( 81 % )                          ;
 ; Total virtual pins              ; 0                                           ;
 ; Total block memory bits         ; 61,534 / 4,065,280 ( 2 % )                  ;
@@ -68,7 +68,7 @@ agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 11/30/2016 16:33:47 ;
+; Start date & time ; 12/02/2016 12:39:18 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; DE1_SOC_Linux_FB    ;
 +-------------------+---------------------+
@@ -79,39 +79,38 @@ agreement for further details.
 +-------------------------------------+--------------------------------------------------------------------------+---------------+--------------------------------+------------+
 ; Assignment Name                     ; Value                                                                    ; Default Value ; Entity Name                    ; Section Id ;
 +-------------------------------------+--------------------------------------------------------------------------+---------------+--------------------------------+------------+
-; COMPILER_SIGNATURE_ID               ; 119169999268071.148055242732400                                          ; --            ; --                             ; --         ;
+; COMPILER_SIGNATURE_ID               ; 119169999268071.148071115109482                                          ; --            ; --                             ; --         ;
 ; ECO_REGENERATE_REPORT               ; On                                                                       ; Off           ; --                             ; --         ;
 ; FITTER_EFFORT                       ; Standard Fit                                                             ; Auto Fit      ; --                             ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/emif.pre.xml                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sdram_io.pre.h                 ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer.pre.c                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer.pre.h                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto.pre.h           ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto_ac_init.pre.c   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto_inst_init.pre.c ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_defines.pre.h        ; --            ; soc_system_hps_0_hps_io_border ; --         ;
-; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/system.pre.h                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sdram_io.pre.h                 ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto_ac_init.pre.c   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/tclrpt.pre.c                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto.pre.h           ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer.pre.c                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer_auto_inst_init.pre.c ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/system.pre.h                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/emif.pre.xml                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/tclrpt.pre.h                   ; --            ; soc_system_hps_0_hps_io_border ; --         ;
+; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/sequencer/sequencer.pre.h                ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_ISW_FILE                        ; soc_system/synthesis/submodules/hps.pre.xml                              ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; HPS_PARTITION                       ; On                                                                       ; --            ; soc_system_hps_0_hps_io_border ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/../soc_system.cmp                                   ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/../../E                                             ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/soc_system_hps_0_hps.svd                            ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/../../soc_system.qsys                               ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/emif.pre.xml                   ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sdram_io.pre.h                 ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer.pre.c                ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer.pre.h                ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto.pre.h           ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto_ac_init.pre.c   ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto_inst_init.pre.c ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_defines.pre.h        ; --            ; --                             ; --         ;
-; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/system.pre.h                   ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sdram_io.pre.h                 ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/alt_types.pre.h                ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto_ac_init.pre.c   ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/tclrpt.pre.c                   ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto.pre.h           ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer.pre.c                ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer_auto_inst_init.pre.c ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/system.pre.h                   ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/emif.pre.xml                   ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/tclrpt.pre.h                   ; --            ; --                             ; --         ;
+; MISC_FILE                           ; soc_system/synthesis/submodules/sequencer/sequencer.pre.h                ; --            ; --                             ; --         ;
 ; MISC_FILE                           ; soc_system/synthesis/submodules/hps.pre.xml                              ; --            ; --                             ; --         ;
 ; OPTIMIZATION_TECHNIQUE              ; Speed                                                                    ; Balanced      ; --                             ; --         ;
 ; PARTITION_COLOR                     ; -- (Not supported for targeted family)                                   ; --            ; --                             ; Top        ;
@@ -119,7 +118,7 @@ agreement for further details.
 ; PARTITION_NETLIST_TYPE              ; -- (Not supported for targeted family)                                   ; --            ; --                             ; Top        ;
 ; SLD_FILE                            ; soc_system/synthesis/soc_system.regmap                                   ; --            ; --                             ; --         ;
 ; SLD_FILE                            ; soc_system/synthesis/soc_system.debuginfo                                ; --            ; --                             ; --         ;
-; SLD_INFO                            ; QSYS_NAME soc_system HAS_SOPCINFO 1 GENERATION_ID 1473132369             ; --            ; soc_system                     ; --         ;
+; SLD_INFO                            ; QSYS_NAME soc_system HAS_SOPCINFO 1 GENERATION_ID 1480710581             ; --            ; soc_system                     ; --         ;
 ; SOPCINFO_FILE                       ; soc_system/synthesis/../../soc_system.sopcinfo                           ; --            ; --                             ; --         ;
 ; SYNTHESIS_ONLY_QIP                  ; On                                                                       ; --            ; --                             ; --         ;
 +-------------------------------------+--------------------------------------------------------------------------+---------------+--------------------------------+------------+
@@ -130,10 +129,10 @@ agreement for further details.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:02:52     ; 1.3                     ; 1458 MB             ; 00:04:01                           ;
-; Fitter               ; 00:07:44     ; 1.1                     ; 3002 MB             ; 00:10:01                           ;
-; Assembler            ; 00:00:38     ; 1.0                     ; 1075 MB             ; 00:00:34                           ;
-; Total                ; 00:11:14     ; --                      ; --                  ; 00:14:36                           ;
+; Analysis & Synthesis ; 00:02:53     ; 1.3                     ; 1502 MB             ; 00:04:09                           ;
+; Fitter               ; 00:08:37     ; 1.1                     ; 3028 MB             ; 00:10:12                           ;
+; Assembler            ; 00:00:37     ; 1.0                     ; 1077 MB             ; 00:00:35                           ;
+; Total                ; 00:12:07     ; --                      ; --                  ; 00:14:56                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

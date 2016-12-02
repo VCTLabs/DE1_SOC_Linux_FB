@@ -1,10 +1,10 @@
-Analysis & Synthesis Status : Successful - Tue Sep 06 11:32:06 2016
-Quartus Prime Version : 16.0.0 Build 211 04/27/2016 SJ Standard Edition
+Analysis & Synthesis Status : Successful - Fri Dec  2 12:46:05 2016
+Quartus Prime Version : 16.1.0 Build 196 10/24/2016 SJ Lite Edition
 Revision Name : DE1_SOC_Linux_FB
 Top-level Entity Name : DE1_SOC_Linux_FB
 Family : Cyclone V
 Logic utilization (in ALMs) : N/A
-Total registers : 6989
+Total registers : 6991
 Total pins : 368
 Total virtual pins : 0
 Total block memory bits : 61,534

@@ -1,5 +1,5 @@
 Assembler report for DE1_SOC_Linux_FB
-Wed Nov 30 16:58:58 2016
+Fri Dec  2 13:11:20 2016
 Quartus Prime Version 16.1.0 Build 196 10/24/2016 SJ Lite Edition
 
 
@@ -39,7 +39,7 @@ agreement for further details.
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Wed Nov 30 16:58:58 2016 ;
+; Assembler Status      ; Successful - Fri Dec  2 13:11:20 2016 ;
 ; Revision Name         ; DE1_SOC_Linux_FB                      ;
 ; Top-level Entity Name ; DE1_SOC_Linux_FB                      ;
 ; Family                ; Cyclone V                             ;
@@ -106,8 +106,8 @@ agreement for further details.
 ; Option         ; Setting                       ;
 +----------------+-------------------------------+
 ; Device         ; 5CSEMA5F31C6                  ;
-; JTAG usercode  ; 0x0196E220                    ;
-; Checksum       ; 0x0196E220                    ;
+; JTAG usercode  ; 0x0196EB66                    ;
+; Checksum       ; 0x0196EB66                    ;
 +----------------+-------------------------------+
 
 
@@ -131,7 +131,7 @@ Info: Running Quartus Prime Assembler
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Wed Nov 30 16:58:20 2016
+    Info: Processing started: Fri Dec  2 13:10:43 2016
 Info: Command: quartus_asm DE1_SOC_Linux_FB
 Info (125069): Default assignment values were changed in the current version of the Quartus Prime software -- changes to default assignments values are contained in file /home/sarnold/intelFPGA_lite/16.1/quartus/linux64/assignment_defaults.qdf
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -140,9 +140,9 @@ Warning (11713): The configuration of the Hard Processor Subsystem (HPS) within 
 The Preloader software that initializes the HPS requires an update.
 Using hps_isw_handoff/soc_system_hps_0/, run the Preloader Support Package Generator to update your Preloader software
 Info: Quartus Prime Assembler was successful. 0 errors, 2 warnings
-    Info: Peak virtual memory: 1075 megabytes
-    Info: Processing ended: Wed Nov 30 16:58:59 2016
-    Info: Elapsed time: 00:00:39
+    Info: Peak virtual memory: 1077 megabytes
+    Info: Processing ended: Fri Dec  2 13:11:21 2016
+    Info: Elapsed time: 00:00:38
     Info: Total CPU time (on all processors): 00:00:35
 
 
