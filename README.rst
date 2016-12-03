@@ -64,8 +64,38 @@ load the fpga and enable the bridges.  Note the old vendor commands are not ther
 anymore (mainly ``bridge_enable_handoff``), so the current (only) u-boot method
 of ``bridge enable`` isn't completely verified yet (it appears to work so far).
 
+Build reqs: git, make, armv7 hardfloat toolchain, all the normal goodies.
+
+Repo: https://github.com/VCTLabs/u-boot.git
+
+Branch: v2016.03-yocto
+
+::
+
+$ git clone https://github.com/VCTLabs/u-boot.git
+$ cd u-boot/
+$ git checkout v2016.03-yocto
+$ export CC=armv7a-hardfloat-linux-gnueabi-
+$ make ARCH=arm CROSS_COMPILE=${CC} distclean
+$ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
+$ make ARCH=arm CROSS_COMPILE=${CC}
+$ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
+
+where sdX is your sdcard device.  Now try the qts script and rebuild
+using all 3 make commands.
+
 Kernel Notes
 ============
+
+The kernel patches are also on branches in the VCT linux-socfpga repo.
+
+Repo: https://github.com/VCTLabs/linux-socfpga.git
+
+Branches: socfpga-3.18-audio  and  4.4-altera
+
+Recipes for each with patches are in the Yocto build manifest below.
+
+
 
 Yocto Notes
 ===========
@@ -73,17 +103,19 @@ Yocto Notes
 Custom kernel and u-boot patches (board-specific headers not updated)
 
 https://github.com/VCTLabs/meta-altera
+
 https://github.com/VCTLabs/vct-socfpga-bsp-platform
 
-The second repo above is the build manifest for Yocto (Poky) build, which
+The second repo above is the build manifest for a Yocto (Poky) build, which
 includes the meta-altera BSP layer plus more.  See the conf/local sample
-configs in meta-altera to get stared building (just copy them and change
-the path to downloads and state cache).  The comand::
+configs in meta-altera to get started building (just copy them to your fresh
+build_dir/conf and change the path to downloads and state cache).  The comand::
 
 $ bitbake core-image-minimal
 
-will build a nice console image with all the custom stuff (using the local
-config file examples) and one of the two kernel versions.
+will build a nice console image with all the custom content (using the local
+config file examples) and one of the two kernel versions.  See the branch
+README files in the platform repo for more setup information.
 
 The Yocto build contains all of the Altera 16.1 branch demos, etc, plus
 the kernel and u-boot patches for .dts and spl builds.  It makes an sdcard
