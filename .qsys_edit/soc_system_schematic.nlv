@@ -84,21 +84,21 @@ preplace inst soc_system.intr_capturer_0 -pg 1 -lvl 3 -y 140
 preplace inst soc_system.master_secure.p2b -pg 1
 preplace inst soc_system.hps_0.bridges -pg 1
 preplace inst soc_system.master_non_sec.jtag_phy_embedded_in_jtag_master -pg 1
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)hps_0.memory,(SLAVE)soc_system.memory) 1 0 4 NJ 870 NJ 870 NJ 870 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)led_pio.external_connection,(SLAVE)soc_system.led_pio_external_connection) 1 0 3 NJ 590 NJ 590 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)sysid_qsys.reset,(SLAVE)led_pio.reset,(SLAVE)intr_capturer_0.reset_sink,(MASTER)clk_0.clk_reset,(SLAVE)master_secure.clk_reset,(SLAVE)pll_stream.reset,(SLAVE)alt_vip_vfr_vga.clock_master_reset,(SLAVE)alt_vip_itc_0.is_clk_rst_reset,(SLAVE)alt_vip_vfr_vga.clock_reset_reset,(SLAVE)button_pio.reset,(SLAVE)jtag_uart.reset,(SLAVE)master_non_sec.clk_reset,(SLAVE)dipsw_pio.reset) 1 1 3 410 690 690 530 1200
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)soc_system.reset) 1 0 1 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)clk_0.clk_in,(SLAVE)soc_system.clk) 1 0 1 NJ
-preplace netloc FAN_OUT<net_container>soc_system</net_container>(MASTER)pll_stream.outclk0,(SLAVE)alt_vip_vfr_vga.clock_reset,(SLAVE)alt_vip_itc_0.is_clk_rst) 1 2 1 670
-preplace netloc FAN_IN<net_container>soc_system</net_container>(MASTER)master_secure.master,(SLAVE)hps_0.f2h_axi_slave,(MASTER)alt_vip_vfr_vga.avalon_master) 1 3 1 1120
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(MASTER)pll_stream.outclk0,(SLAVE)alt_vip_itc_0.is_clk_rst,(SLAVE)alt_vip_vfr_vga.clock_reset) 1 2 1 670
+preplace netloc INTERCONNECT<net_container>soc_system</net_container>(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)sysid_qsys.control_slave,(MASTER)master_non_sec.master,(SLAVE)led_pio.s1,(SLAVE)button_pio.s1,(SLAVE)intr_capturer_0.avalon_slave_0,(SLAVE)alt_vip_vfr_vga.avalon_slave,(SLAVE)dipsw_pio.s1,(SLAVE)jtag_uart.avalon_jtag_slave) 1 2 3 710 750 1240 940 1560
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.memory,(SLAVE)hps_0.memory) 1 0 4 NJ 890 NJ 890 NJ 890 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.alt_vip_itc_0_clocked_video,(SLAVE)alt_vip_itc_0.clocked_video) 1 0 3 NJ 50 NJ 50 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.led_pio_external_connection,(SLAVE)led_pio.external_connection) 1 0 3 NJ 550 NJ 550 NJ
-preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.dipsw_pio_external_connection,(SLAVE)dipsw_pio.external_connection) 1 0 4 NJ 530 NJ 530 NJ 550 NJ
-preplace netloc INTERCONNECT<net_container>soc_system</net_container>(SLAVE)button_pio.s1,(SLAVE)alt_vip_vfr_vga.avalon_slave,(SLAVE)intr_capturer_0.avalon_slave_0,(SLAVE)led_pio.s1,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)dipsw_pio.s1,(SLAVE)jtag_uart.avalon_jtag_slave,(MASTER)master_non_sec.master,(SLAVE)sysid_qsys.control_slave) 1 2 3 750 750 1220 720 1540
+preplace netloc INTERCONNECT<net_container>soc_system</net_container>(SLAVE)button_pio.irq,(MASTER)hps_0.f2h_irq0,(MASTER)intr_capturer_0.interrupt_receiver,(SLAVE)dipsw_pio.irq,(SLAVE)jtag_uart.irq) 1 3 2 1220 720 1560
+preplace netloc FAN_IN<net_container>soc_system</net_container>(MASTER)master_secure.master,(MASTER)alt_vip_vfr_vga.avalon_master,(SLAVE)hps_0.f2h_axi_slave) 1 3 1 1120
 preplace netloc EXPORT<net_container>soc_system</net_container>(MASTER)soc_system.hps_0_h2f_reset,(MASTER)hps_0.h2f_reset) 1 4 1 N
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.button_pio_external_connection,(SLAVE)button_pio.external_connection) 1 0 4 NJ 390 NJ 390 NJ 390 NJ
-preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)alt_vip_vfr_vga.clock_master_reset,(SLAVE)dipsw_pio.reset,(MASTER)clk_0.clk_reset,(SLAVE)sysid_qsys.reset,(SLAVE)alt_vip_itc_0.is_clk_rst_reset,(SLAVE)pll_stream.reset,(SLAVE)alt_vip_vfr_vga.clock_reset_reset,(SLAVE)led_pio.reset,(SLAVE)master_non_sec.clk_reset,(SLAVE)intr_capturer_0.reset_sink,(SLAVE)master_secure.clk_reset,(SLAVE)button_pio.reset,(SLAVE)jtag_uart.reset) 1 1 3 430 590 730 530 1180
 preplace netloc POINT_TO_POINT<net_container>soc_system</net_container>(SLAVE)alt_vip_itc_0.din,(MASTER)alt_vip_vfr_vga.avalon_streaming_source) 1 2 2 670 30 1100
-preplace netloc INTERCONNECT<net_container>soc_system</net_container>(MASTER)hps_0.f2h_irq0,(SLAVE)dipsw_pio.irq,(SLAVE)jtag_uart.irq,(MASTER)intr_capturer_0.interrupt_receiver,(SLAVE)button_pio.irq) 1 3 2 1200 700 1560
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)dipsw_pio.external_connection,(SLAVE)soc_system.dipsw_pio_external_connection) 1 0 4 NJ 550 NJ 550 NJ 550 NJ
 preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)hps_0.hps_io,(SLAVE)soc_system.hps_0_hps_io) 1 0 4 NJ 830 NJ 830 NJ 830 NJ
-preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)master_non_sec.clk,(SLAVE)master_secure.clk,(SLAVE)hps_0.h2f_axi_clock,(SLAVE)dipsw_pio.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)sysid_qsys.clk,(SLAVE)intr_capturer_0.clock,(MASTER)clk_0.clk,(SLAVE)jtag_uart.clk,(SLAVE)led_pio.clk,(SLAVE)alt_vip_vfr_vga.clock_master,(SLAVE)button_pio.clk,(SLAVE)pll_stream.refclk) 1 1 3 410 570 770 510 1140
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)button_pio.clk,(SLAVE)dipsw_pio.clk,(SLAVE)master_secure.clk,(SLAVE)led_pio.clk,(MASTER)clk_0.clk,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)alt_vip_vfr_vga.clock_master,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)sysid_qsys.clk,(SLAVE)master_non_sec.clk,(SLAVE)intr_capturer_0.clock,(SLAVE)jtag_uart.clk,(SLAVE)pll_stream.refclk,(SLAVE)hps_0.h2f_axi_clock) 1 1 3 430 570 730 510 1160
 levelinfo -pg 1 0 200 1710
-levelinfo -hier soc_system 210 240 510 850 1350 1580
+levelinfo -hier soc_system 210 240 510 850 1370 1580
