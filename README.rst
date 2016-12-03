@@ -47,3 +47,60 @@ $ cd path/to/u-boot
 $ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
 
 
+
+U-Boot Notes
+============
+
+Mainline u-boot (for socfpga boards) is barebones without more vendor "luv",
+as it only supports extlinux.conf (meaning no uEnv or even boot script support).
+The VCT u-boot repo has patches, one adds basic boot.scr support to the closest
+config: socfpga_de0_nano_soc_defconfig
+
+If it finds a boot.scr in the /boot partition, it will execute it, so if you want
+to disable it, rename or delete it.  Otherwise it only looks for the default kernel
+and DT blob names (zImage and socfpga.dtb).  This seemed like the "best" (or least
+bad) starting point since all the vendor examples/documentation uses a boot.scr to
+load the fpga and enable the bridges.  Note the old vendor commands are not there
+anymore (mainly ``bridge_enable_handoff``), so the current (only) u-boot method
+of ``bridge enable`` isn't completely verified yet (it appears to work so far).
+
+Kernel Notes
+============
+
+Yocto Notes
+===========
+
+Custom kernel and u-boot patches (board-specific headers not updated)
+
+https://github.com/VCTLabs/meta-altera
+https://github.com/VCTLabs/vct-socfpga-bsp-platform
+
+The second repo above is the build manifest for Yocto (Poky) build, which
+includes the meta-altera BSP layer plus more.  See the conf/local sample
+configs in meta-altera to get stared building (just copy them and change
+the path to downloads and state cache).  The comand::
+
+$ bitbake core-image-minimal
+
+will build a nice console image with all the custom stuff (using the local
+config file examples) and one of the two kernel versions.
+
+The Yocto build contains all of the Altera 16.1 branch demos, etc, plus
+the kernel and u-boot patches for .dts and spl builds.  It makes an sdcard
+image with VFAT /boot, etx3 / (root), and raw 3rd partition for u-boot.  It
+will populate /boot with everything except the soc_system.rbf file, and the
+third partition will be the "plain" u-boot, which needs to be replaced with
+the spl build from `Update U-boot Headers`_ above.
+
+Use the local.conf settings to switch kernels, currently linux-audio-3.18
+and linux-altera-4.4.  Both have slightly different versions of the same
+patches for DTS and wm8731.
+
+The Linux_Audio project modules are packaged for the Yocto build, otherwise
+they need to be built separately (use the Makefile).
+
+
+
+
+
+
