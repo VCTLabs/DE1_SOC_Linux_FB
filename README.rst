@@ -2,7 +2,7 @@
  DE1_SOC_Linux_FB
 ==================
 
-Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
+Demo project for DE1-SoC board, updated for Quartus/Qsys 16.1.
 
 Update Process
 ==============
@@ -11,7 +11,7 @@ Upgrade project IP cores, re-generate the VHDL code (using Qsys) then rebuild
 with Quartus tools::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
-$ qsys-generate soc_system.qsys --synthesis=VHDL
+$ qsys-generate soc_system.qsys --synthesis=VERILOG
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
 $ quartus_asm  DE1_SOC_Linux_FB
