@@ -66,6 +66,14 @@ Convert the .sof file to a firmware blob::
 
 $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 
+At this point we have these essential generated files:
+=====================================================
+
+soc_system.rbf
+soc_system.sopcinfo
+soc_system/soc_system.html
+soc_system/soc_system_generation.rpt
+
 Generate BSP dir
 ================
 

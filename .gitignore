@@ -29,8 +29,17 @@ db/.cmp.kpt
 db/**.soopcinfo
 db/**.html
 db/**.xml
+db/**.tmp
+db/**.hdbx
 
+soc_system.sopcinfo
 soc_system/*.rpt
+soc_system/*.html
+soc_system/*.debuginfo
+soc_system/synthesis/*.debuginfo
+soc_system/synthesis/*.gip
+soc_system/synthesis/*.svp
+
 stamp/*
 
 *.done
