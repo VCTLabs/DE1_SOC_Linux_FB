@@ -25,9 +25,11 @@ export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
 
 export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
-The env.sh will setup a number of exports and paths. This will very.
+================
 
-For 64b Ubuntu 16.04 it sets these exports:
+When a new shell is opened the path is setup. It depends on the environment.
+
+For 64b Ubuntu 16.04 with user testy it sets these exports:
 
 /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
@@ -54,6 +56,7 @@ Upgrade project IP cores, re-generate the VERILOG code (using Qsys) then rebuild
 with Quartus tools::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
+
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
@@ -173,9 +176,5 @@ patches for DTS and wm8731.
 
 The Linux_Audio project modules are packaged for the Yocto build, otherwise
 they need to be built separately (use the Makefile).
-
-
-
-
 
 
