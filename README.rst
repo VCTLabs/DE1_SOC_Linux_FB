@@ -7,11 +7,11 @@ Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
 Update Process
 ==============
 
-Upgrade project IP cores, re-generate the VHDL code (using Qsys) then rebuild
+Upgrade project IP cores, re-generate the Verilog or VHDL code (using Qsys) then rebuild
 with Quartus tools::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
-$ qsys-generate soc_system.qsys --synthesis=VHDL
+$ qsys-generate soc_system.qsys --synthesis=VERILOG
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
 $ quartus_asm  DE1_SOC_Linux_FB
@@ -19,6 +19,11 @@ $ quartus_asm  DE1_SOC_Linux_FB
 Convert the .sof file to a firmware blob::
 
 $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
+
+.. note:: To use the project Makefile, run ``make clean`` and then ``make sof``.
+          Do not run ''make scrub_clean`` since it will remove important bits
+          required by the project.
+
 
 Generate BSP dir
 ================
@@ -33,6 +38,7 @@ the following u-boot command to update the board headers.  Once these headers
 are updated for a given project build, u-boot should be configured for the
 de0-nano-sockit and then build the normal spl build.
 
+
 Update U-boot Headers
 =====================
 
@@ -46,6 +52,24 @@ Example command assuming u-boot and project source dirs are parallel::
 $ cd path/to/u-boot
 $ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
 
+
+Current deploy sequence
+=======================
+
+Yocto currently builds 2 main rootfs "packages" and the sdcard image (plus kernel,
+.dtb, u-boot).  The tarball, rootfs ext3 image and sdcard image all contain the
+proper kernel modules and boot files, however, u-boot is still plain vanilla (ie,
+it has not yet been updated with the Quartus project headers).  The deployment
+steps must incorporate the firmware blob and custom u-boot:
+
+0) bitbake an image
+1) burn the sdcard image to a test card
+2) mount the /boot partition or the root partition, depending on whether the card
+   was formatted with 2 or 3 partitions; note the raw partition will be either
+   the first (of 2) partitions or the last (of 3)
+3) copy the new .rbf file to the boot partition as ``soc_system.rbf``
+4) update the u-boot build as above and burn the spl file to the raw partition
+5) insert the card, open a serial console, and boot the board
 
 
 U-Boot Notes
@@ -84,6 +108,7 @@ $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 where sdX is your sdcard device.  Now try the qts script and rebuild
 using all 3 make commands.
 
+
 Kernel Notes
 ============
 
@@ -93,8 +118,7 @@ Repo: https://github.com/VCTLabs/linux-socfpga.git
 
 Branches: socfpga-3.18-audio  and  4.4-altera
 
-Recipes for each with patches are in the Yocto build manifest below.
-
+Recipes for each with patches are in the Yocto meta-altera layer below.
 
 
 Yocto Notes
@@ -102,9 +126,13 @@ Yocto Notes
 
 Custom kernel and u-boot patches (board-specific headers not updated)
 
-https://github.com/VCTLabs/meta-altera
+Repo: https://github.com/VCTLabs/meta-altera
 
-https://github.com/VCTLabs/vct-socfpga-bsp-platform
+Branch: jethro_16.1_v2016.03
+
+Repo: https://github.com/VCTLabs/vct-socfpga-bsp-platform
+
+Branch: poky-jethro
 
 The second repo above is the build manifest for a Yocto (Poky) build, which
 includes the meta-altera BSP layer plus more.  See the conf/local sample
@@ -126,10 +154,10 @@ the spl build from `Update U-boot Headers`_ above.
 
 Use the local.conf settings to switch kernels, currently linux-audio-3.18
 and linux-altera-4.4.  Both have slightly different versions of the same
-patches for DTS and wm8731.
-
-The Linux_Audio project modules are packaged for the Yocto build, otherwise
-they need to be built separately (use the Makefile).
+patches for DTS and wm8731 (note linux-altera-4.4 recipe has been updated
+with separate .dts files for the FB and Audio projects with config set for
+FB).  The Linux_Audio project modules are packaged for the Yocto build,
+otherwise they need to be built separately (use the Makefile).
 
 
 
