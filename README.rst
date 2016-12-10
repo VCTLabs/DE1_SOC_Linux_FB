@@ -56,7 +56,6 @@ Upgrade project IP cores, re-generate the VERILOG code (using Qsys) then rebuild
 with Quartus tools::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
-
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
@@ -135,8 +134,19 @@ $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
 $ make ARCH=arm CROSS_COMPILE=${CC}
 $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
-where sdX is your sdcard device.  Now try the qts script and rebuild
+where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script and rebuild
 using all 3 make commands.
+
+At this point, u-boot essentially doesn't care what it loads if it has the right name; this
+goes for all of the files - soc_system.rbf, socfpga.dtb, boot.scr, and zImage.  The key is
+matching the right .rbf with the right .dtb file, since there are multiple DT blobs in the
+kernel build but only one (correct) .rbf for each matching .dtb file.  The Yocto kernel
+recipes takes care of this with config options, so it's up to you if you build the kernel
+by hand (or with the kernel builder).  There is no de1_soc device tree file in any upstream
+kernel, so the following patches are added in the Yocto image and kernel builder:
+
+* DE1_SOC_Linux_FB project (ie, this one) uses ``socfpga_cyclone5_de1_soc-fb.dts``
+* DE1-SoC-Sound project uses ``socfpga_cyclone5_de1_soc-audio.dts``
 
 Kernel Notes
 ============
