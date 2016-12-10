@@ -4,8 +4,55 @@
 
 Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
 
-Update Process
-==============
+If your qsys/quartus/soceds installs went correctly, you should be able
+to run the env.sh script in your shell and start compiling.  If you want
+to know more, read on...
+
+(Manual) Environment setup
+==========================
+
+Add this to your ~/.bashrc file:
+
+export ALTERA_PATH=$HOME/intelFPGA/16.1
+export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+
+export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
+
+export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
+export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
+export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
+
+export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
+export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
+
+. $SOCEDS_DEST_ROOT/env.sh
+
+export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
+
+When a new shell is opened the path is setup. It depends on the environment.
+
+For 64b Ubuntu 16.04 with user testy it sets these exports:
+
+/home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+/home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+/home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
+/home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
+/home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
+/home/testy/intelFPGA/16.1/embedded/ds-5/bin
+/home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+/home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
+/home/testy/intelFPGA_lite/16.1/nios2eds/bin
+/home/testy/intelFPGA_lite/16.1/quartus/bin
+/home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+
+Project Update/Build Process
+============================
 
 Upgrade project IP cores, re-generate the Verilog or VHDL code (using Qsys) then rebuild
 with Quartus tools::
@@ -105,8 +152,19 @@ $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
 $ make ARCH=arm CROSS_COMPILE=${CC}
 $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
-where sdX is your sdcard device.  Now try the qts script and rebuild
+where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script and rebuild
 using all 3 make commands.
+
+At this point, u-boot essentially doesn't care what it loads if it has the right name; this
+goes for all of the files - soc_system.rbf, socfpga.dtb, boot.scr, and zImage.  The key is
+matching the right .rbf with the right .dtb file, since there are multiple DT blobs in the
+kernel build but only one (correct) .rbf for each matching .dtb file.  The Yocto kernel
+recipes takes care of this with config options, so it's up to you if you build the kernel
+by hand (or with the kernel builder).  There is no de1_soc device tree file in any upstream
+kernel, so the following patches are added in the Yocto image and kernel builder:
+
+* DE1_SOC_Linux_FB project (ie, this one) uses ``socfpga_cyclone5_de1_soc-fb.dts``
+* DE1-SoC-Sound project uses ``socfpga_cyclone5_de1_soc-audio.dts``
 
 
 Kernel Notes
@@ -158,9 +216,5 @@ patches for DTS and wm8731 (note linux-altera-4.4 recipe has been updated
 with separate .dts files for the FB and Audio projects with config set for
 FB).  The Linux_Audio project modules are packaged for the Yocto build,
 otherwise they need to be built separately (use the Makefile).
-
-
-
-
 
 

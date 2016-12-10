@@ -13,8 +13,6 @@ incremental_db/
 soc_system_testsoc_system/
 soc_system/
 
-#stamp/*
-
 *.jdi
 *.done
 *.rpt
@@ -25,3 +23,7 @@ soc_system/
 *.pin
 *.sof
 *.sopcinfo  
+  
+incremental_db/*
+
+
