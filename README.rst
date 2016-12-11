@@ -12,52 +12,48 @@ $ ${HOME}/intelFPGA/16.1/embedded/embedded_command_shell.sh
 If you want to know more, read on...
 
 .. note:: If you run the script as above it will exec a new bash using
-          your default environment (~/.bashrc) but if you source it instead
-          (as below) you will keep your original shell.  The one thing it
-          currently does not add is the path to the bsp tools.
+   your default environment (~/.bashrc) but if you source it instead
+   (as below) you will keep your original shell.  The one thing it
+   currently does not add is the path to the bsp tools.
 
 (Manual) Environment setup
 ==========================
 
-Add this to your ~/.bashrc file:
+Add this to your ~/.bashrc file::
 
-export ALTERA_PATH=$HOME/intelFPGA/16.1
-export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
-
-export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
-
-export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
-export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
-export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
-
-export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
-export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
-
-. $SOCEDS_DEST_ROOT/env.sh
-
-export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
+  export ALTERA_PATH=$HOME/intelFPGA/16.1
+  export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+  export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
+  export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
+  export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
+  export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
+  export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
+  export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
+  . $SOCEDS_DEST_ROOT/env.sh
+  export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
 When a new shell is opened the path is setup. It depends on the environment.
 
-For 64b Ubuntu 16.04 with user testy it sets these exports:
+For 64b Ubuntu 16.04 with user testy it sets these exports::
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
-/home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
-/home/testy/intelFPGA/16.1/embedded/ds-5/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin
-/home/testy/intelFPGA_lite/16.1/quartus/bin
-/home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+  /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+  /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
+  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
+  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
+  /home/testy/intelFPGA/16.1/embedded/ds-5/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/bin
+  /home/testy/intelFPGA_lite/16.1/quartus/bin
+  /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+
 
 Project Update/Build Process
 ============================
@@ -75,9 +71,9 @@ Convert the .sof file to a firmware blob::
 
 $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 
-.. note:: To use the project Makefile, run ``make clean`` and then ``make sof``.
-          Do not run ''make scrub_clean`` since it will remove important bits
-          required by the project.
+.. note:: To use the project Makefile, run ``make clean`` and 
+   then ``make sof``.  Do not run ``make scrub_clean`` since
+   it will remove important bits required by the project.
 
 
 Generate BSP dir
@@ -159,8 +155,8 @@ $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
 $ make ARCH=arm CROSS_COMPILE=${CC}
 $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
-where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script and rebuild
-using all 3 make commands.
+where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script
+and rebuild using all 3 make commands.
 
 At this point, u-boot essentially doesn't care what it loads if it has the right name; this
 goes for all of the files - soc_system.rbf, socfpga.dtb, boot.scr, and zImage.  The key is
