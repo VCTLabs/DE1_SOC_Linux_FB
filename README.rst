@@ -2,11 +2,19 @@
  DE1_SOC_Linux_FB
 ==================
 
-Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
+Demo project for DE1-SoC board, updated for Quartus/Qsys 16.1.
 
 If your qsys/quartus/soceds installs went correctly, you should be able
-to run the env.sh script in your shell and start compiling.  If you want
-to know more, read on...
+to run the env.sh script in your shell and start compiling::
+
+$ ${HOME}/intelFPGA/16.1/embedded/embedded_command_shell.sh
+
+If you want to know more, read on...
+
+.. note:: If you run the script as above it will exec a new bash using
+          your default environment (~/.bashrc) but if you source it instead
+          (as below) you will keep your original shell.  The one thing it
+          currently does not add is the path to the bsp tools.
 
 (Manual) Environment setup
 ==========================
@@ -78,7 +86,7 @@ Generate BSP dir
 You can run the bsp editor GUI, but the easy way for u-boot is to run the
 following command from the project directory::
 
-$ bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
+$ /path/to/bsb/tools/bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
 
 Now you can use the "build" dir above (ie, where the settings.bsp file is) in
 the following u-boot command to update the board headers.  Once these headers
@@ -97,8 +105,7 @@ The script args are essentially <device_family> , <path/to/project/dir> ,
 Example command assuming u-boot and project source dirs are parallel::
 
 $ cd path/to/u-boot
-$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
-
+$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../DE1_SOC_Linux_FB/ ../DE1_SOC_Linux_FB/build/ board/terasic/de0-nano-soc/qts/
 
 Current deploy sequence
 =======================
