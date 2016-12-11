@@ -1,19 +1,19 @@
-// (C) 2001-2013 Altera Corporation. All rights reserved.
-// Your use of Altera Corporation's design tools, logic functions and other 
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files any of the foregoing (including device programming or simulation 
 // files), and any associated documentation or information are expressly subject 
-// to the terms and conditions of the Altera Program License Subscription 
-// Agreement, Altera MegaCore Function License Agreement, or other applicable 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
 // license agreement, including, without limitation, that your use is for the 
-// sole purpose of programming logic devices manufactured by Altera and sold by 
-// Altera or its authorized distributors.  Please refer to the applicable 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
 
-// $Id: //acds/rel/13.0/ip/merlin/altera_merlin_axi_master_ni/altera_merlin_axi_master_ni.sv#1 $
+// $Id: //acds/rel/16.1/ip/merlin/altera_merlin_axi_master_ni/altera_merlin_axi_master_ni.sv#1 $
 // $Revision: #1 $
-// $Date: 2013/02/11 $    
+// $Date: 2016/08/07 $    
 // $Author: swbranch $
 
 //-----------------------------------------
@@ -84,7 +84,9 @@ module altera_merlin_axi_master_ni
             PKT_SRC_ID_L = 1,
             PKT_DEST_ID_H = 0,
             PKT_DEST_ID_L = 0,
-            ST_DATA_W = 125,
+			PKT_ORI_BURST_SIZE_H = 127,
+			PKT_ORI_BURST_SIZE_L = 125,
+            ST_DATA_W = 128,
             ST_CHANNEL_W = 1,
                            
     //----------------
@@ -250,17 +252,23 @@ function reg[7:0] bytes_in_transfer;
 
 endfunction
 
-//----------------------------------------------------
-// Ubiquitous, familiar log2 function
-//----------------------------------------------------
-function integer log2;
-    input integer value;
+    // --------------------------------------------------
+    // Ceil(log2()) function log2ceil of 4 = 2
+    // --------------------------------------------------
+    function integer log2ceil;
+        input reg[63:0] val;
+        reg [63:0] i;
 
-    value = value - 1;        
-    for(log2 = 0; value > 0; log2 = log2 + 1)
-        value = value >> 1;
+        begin
+            i = 1;
+            log2ceil = 0;
 
-endfunction
+            while (i < val) begin
+                log2ceil = log2ceil + 1;
+                i = i << 1;
+            end
+        end
+    endfunction
 
 //--------------------------------------
 //  Burst type decode
@@ -310,8 +318,8 @@ reg     [PKT_ADDR_W-1 : 0]              burstwrap_mask;
 reg     [PKT_ADDR_W-1 : 0]              burst_address_high;
 reg     [PKT_ADDR_W-1 : 0]              burst_address_low;
 
-assign burstwrap_boundary_width_write   =    awsize + log2(awlen + 1);
-assign burstwrap_boundary_width_read    =    arsize + log2(arlen + 1);
+assign burstwrap_boundary_width_write   =    awsize + log2ceil(awlen + 1);
+assign burstwrap_boundary_width_read    =    arsize + log2ceil(arlen + 1);
 
 function reg [PKT_BURSTWRAP_W - 2 : 0] burstwrap_boundary_calculation
 (
@@ -431,8 +439,8 @@ reg    [31:0]                   total_bytecount_left_wire;   // to eliminate QIS
 // First address and bytecount of a burst
 always_comb
 begin
-    total_write_bytecount_wire  = (awlen + 1) << log2(NUMSYMBOLS);
-    total_read_bytecount_wire   = (arlen + 1) << log2(NUMSYMBOLS);
+    total_write_bytecount_wire  = (awlen + 1) << log2ceil(NUMSYMBOLS);
+    total_read_bytecount_wire   = (arlen + 1) << log2ceil(NUMSYMBOLS);
     total_write_bytecount       = total_write_bytecount_wire[PKT_BYTE_CNT_W-1:0];
     total_read_bytecount        = total_read_bytecount_wire[PKT_BYTE_CNT_W-1:0];
     start_address               = awaddr; 
@@ -448,30 +456,37 @@ end
 // Refer for comments inside the component for more details
 //-----------------------------------------------------------------------
     
-    reg [PKT_ADDR_W + (PKT_BURSTWRAP_W-1) + 4 : 0] address_for_alignment;
-    reg [PKT_ADDR_W+log2(NUMSYMBOLS)-1 :0]  address_after_alignment;
     reg [PKT_ADDR_W-1 : 0] address_aligned;
-    assign address_aligned          = address_after_alignment[PKT_ADDR_W - 1 : 0];
-    assign address_for_alignment  = {burstwrap_boundary_write,awburst, start_address, awsize};
-    
-    altera_merlin_address_alignment
-        #(
-          .ADDR_W (PKT_ADDR_W),
-          .BURSTWRAP_W (PKT_BURSTWRAP_W),
-          .INCREMENT_ADDRESS (1),
-          .NUMSYMBOLS (NUMSYMBOLS)
-          ) align_address_to_size
-    (
-     .clk (aclk),
-     .reset (aresetn),
-     .in_data (address_for_alignment),
-     .in_valid (write_addr_data_both_valid),
-     .in_sop (write_cp_startofpacket),
-     .in_eop (wlast),
 
-     .out_data (address_after_alignment),
-     .out_ready (write_cp_ready)
-     );
+    generate
+        if (AXI_VERSION != "AXI4Lite") begin
+            reg [PKT_ADDR_W + (PKT_BURSTWRAP_W-1) + 4 : 0] address_for_alignment;
+            reg [PKT_ADDR_W+log2ceil(NUMSYMBOLS)-1 :0]  address_after_alignment;
+            assign address_aligned          = address_after_alignment[PKT_ADDR_W - 1 : 0];
+            assign address_for_alignment  = {burstwrap_boundary_write,awburst, start_address, awsize};
+
+            altera_merlin_address_alignment
+                #(
+                  .ADDR_W (PKT_ADDR_W),
+                  .BURSTWRAP_W (PKT_BURSTWRAP_W),
+                  .INCREMENT_ADDRESS (1),
+                  .NUMSYMBOLS (NUMSYMBOLS)
+                  ) align_address_to_size
+            (
+             .clk (aclk),
+             .reset (aresetn),
+             .in_data (address_for_alignment),
+             .in_valid (write_addr_data_both_valid),
+             .in_sop (write_cp_startofpacket),
+             .in_eop (wlast),
+
+             .out_data (address_after_alignment),
+             .out_ready (write_cp_ready)
+             );
+        end else begin
+           assign address_aligned = start_address; 
+        end
+    endgenerate
     
      
 // -----------------------------------------------------------------------------
@@ -571,11 +586,11 @@ always_comb
         write_cp_data                                       = '0;
         write_cp_data[PKT_BYTE_CNT_H :PKT_BYTE_CNT_L ]      = write_burst_bytecount; 
         write_cp_data[PKT_TRANS_EXCLUSIVE            ]      = awlock[0];
-        write_cp_data[PKT_TRANS_LOCK                 ]      = 0;
-        write_cp_data[PKT_TRANS_COMPRESSED_READ      ]      = 0;
-        write_cp_data[PKT_TRANS_READ                 ]      = 0;
-        write_cp_data[PKT_TRANS_WRITE                ]      = 1; 
-        write_cp_data[PKT_TRANS_POSTED               ]      = 0;
+        write_cp_data[PKT_TRANS_LOCK                 ]      = '0;
+        write_cp_data[PKT_TRANS_COMPRESSED_READ      ]      = '0;
+        write_cp_data[PKT_TRANS_READ                 ]      = '0;
+        write_cp_data[PKT_TRANS_WRITE                ]      = 1'b1; 
+        write_cp_data[PKT_TRANS_POSTED               ]      = '0;
         write_cp_data[PKT_BURSTWRAP_H:PKT_BURSTWRAP_L]      = burstwrap_value_write[PKT_BURSTWRAP_W - 1 : 0];
         write_cp_data[PKT_ADDR_H     :PKT_ADDR_L     ]      = address_aligned;
         write_cp_data[PKT_DATA_H     :PKT_DATA_L     ]      = wdata;
@@ -587,7 +602,8 @@ always_comb
         write_cp_data[PKT_THREAD_ID_H :PKT_THREAD_ID_L]     = awid;
         write_cp_data[PKT_CACHE_H :PKT_CACHE_L]             = awcache;
         write_cp_data[PKT_ADDR_SIDEBAND_H:PKT_ADDR_SIDEBAND_L] = awuser;
-
+		write_cp_data[PKT_ORI_BURST_SIZE_H :PKT_ORI_BURST_SIZE_L] = awsize;
+		
         //  AXI4 signals: receive from the translator
         if (AXI_VERSION == "AXI4") begin
             write_cp_data[PKT_QOS_H : PKT_QOS_L]                     = awqos;
@@ -613,17 +629,22 @@ always_comb
         read_cp_data                                        = '0;
         read_cp_data[PKT_BYTE_CNT_H :PKT_BYTE_CNT_L ]       = total_read_bytecount;
         read_cp_data[PKT_TRANS_EXCLUSIVE            ]       = arlock[0];
-        read_cp_data[PKT_TRANS_LOCK                 ]       = 0;
-        read_cp_data[PKT_TRANS_COMPRESSED_READ      ]       = 1;
-        read_cp_data[PKT_TRANS_READ                 ]       = 1;
-        read_cp_data[PKT_TRANS_WRITE                ]       = 0;
-        read_cp_data[PKT_TRANS_POSTED               ]       = 0;
+        read_cp_data[PKT_TRANS_LOCK                 ]       = '0;
+        if (AXI_VERSION != "AXI4Lite") begin
+            read_cp_data[PKT_TRANS_COMPRESSED_READ] = 1'b1;
+        end else begin
+            read_cp_data[PKT_TRANS_COMPRESSED_READ] = '0;
+        end
+        read_cp_data[PKT_TRANS_READ                 ]       = '1;
+        read_cp_data[PKT_TRANS_WRITE                ]       = '0;
+        read_cp_data[PKT_TRANS_POSTED               ]       = '0;
         read_cp_data[PKT_BURSTWRAP_H:PKT_BURSTWRAP_L]       = burstwrap_value_read[PKT_BURSTWRAP_W - 1 : 0]; 
         read_cp_data[PKT_ADDR_H     :PKT_ADDR_L     ]       = araddr;
-        read_cp_data[PKT_DATA_H     :PKT_DATA_L     ]       = 0;
+        read_cp_data[PKT_DATA_H     :PKT_DATA_L     ]       = '0;
         read_cp_data[PKT_BYTEEN_H   :PKT_BYTEEN_L   ]       = {PKT_BYTEEN_W{1'b1}};
         read_cp_data[PKT_SRC_ID_H   :PKT_SRC_ID_L   ]       = id_int[PKT_SRC_ID_W-1:0];
         read_cp_data[PKT_BURST_SIZE_H :PKT_BURST_SIZE_L]    = arsize;
+		read_cp_data[PKT_ORI_BURST_SIZE_H :PKT_ORI_BURST_SIZE_L] = arsize;
         read_cp_data[PKT_BURST_TYPE_H :PKT_BURST_TYPE_L]    = arburst;
         read_cp_data[PKT_PROTECTION_H : PKT_PROTECTION_L]   = arprot;
         read_cp_data[PKT_THREAD_ID_H  : PKT_THREAD_ID_L]    = arid;
@@ -650,8 +671,6 @@ always_comb
 //--------------------------------------
 // Command control for read packets
 //--------------------------------------
-assign    read_cp_startofpacket         = 1;
-assign    read_cp_endofpacket           = 1;
 assign    read_cp_valid                 = arvalid;
 assign    arready                       = read_cp_ready;
 
@@ -671,8 +690,8 @@ assign rlast                    = read_rp_endofpacket;
             wire write_cmd_accepted;
             wire write_response_accepted;
             wire write_response_count_is_1;
-            reg [log2(WRITE_ISSUING_CAPABILITY+1)-1:0] pending_write_response_count;
-            reg [log2(WRITE_ISSUING_CAPABILITY+1)-1:0] next_pending_write_response_count;
+            reg [log2ceil(WRITE_ISSUING_CAPABILITY+1)-1:0] pending_write_response_count;
+            reg [log2ceil(WRITE_ISSUING_CAPABILITY+1)-1:0] next_pending_write_response_count;
     
             assign write_cmd_accepted  = write_cp_valid && write_cp_ready && write_cp_endofpacket;
             assign write_response_accepted  = write_rp_valid && write_rp_ready && write_rp_endofpacket;
@@ -708,10 +727,10 @@ assign rlast                    = read_rp_endofpacket;
             wire read_response_accepted;
             wire read_response_count_is_1;
     
-            reg [log2(READ_ISSUING_CAPABILITY+1)-1:0]  pending_read_response_count;
-            reg [log2(READ_ISSUING_CAPABILITY+1)-1:0]  next_pending_read_response_count;
+            reg [log2ceil(READ_ISSUING_CAPABILITY+1)-1:0]  pending_read_response_count;
+            reg [log2ceil(READ_ISSUING_CAPABILITY+1)-1:0]  next_pending_read_response_count;
     
-            assign read_cmd_accepted  = read_cp_valid && read_cp_ready && read_rp_endofpacket;
+            assign read_cmd_accepted  = read_cp_valid && read_cp_ready && read_cp_endofpacket;
             assign read_response_accepted  = read_rp_valid && read_rp_ready && read_rp_endofpacket;
     
             always_comb

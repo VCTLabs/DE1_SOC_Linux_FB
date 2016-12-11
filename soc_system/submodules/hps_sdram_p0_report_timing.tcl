@@ -1,13 +1,13 @@
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -75,7 +75,7 @@ set script_dir [file dirname [info script]]
 # to process variation 
 
 set MP(DQSQ) 0.65
-set MP(QH_time) 0.5
+set MP(QH_time) 0.55
 set MP(IS) 0.70
 set MP(IH) 0.6
 set MP(DS) 0.60
@@ -92,6 +92,7 @@ set MP(DQSCK_T) 0.15
 # Initialize the environment
 #############################################################
 
+global quartus
 if { ![info exists quartus(nameofexecutable)] || $quartus(nameofexecutable) != "quartus_sta" } {
 	post_message -type error "This script must be run from quartus_sta"
 	return 1
@@ -249,6 +250,12 @@ foreach inst $instances {
 	# DQS_phase offset
 	set dqs_phase [ hps_sdram_p0_get_dqs_phase $dqs_pins ]
 
+	set fitter_run [hps_sdram_p0_get_io_interface_type [lindex [lindex $pins(q_groups) 0] 0]]
+	if {$fitter_run == ""} {
+		post_message -type critical_warning "Fitter (quartus_fit) failed or was not run. Run the Fitter (quartus_fit) successfully before running ReportDDR"
+		continue
+	}
+
 	# Get the interface type (HPAD or VPAD)
 	set interface_type [hps_sdram_p0_get_io_interface_type $all_dq_pins]
 
@@ -340,7 +347,6 @@ foreach inst $instances {
 		# Read Analysis
 
 		hps_sdram_p0_perform_flexible_read_capture_timing_analysis $opcs $opcname $inst $family scale_factors $io_std $interface_type $max_package_skew $dqs_phase $period $all_dq_pins pins t summary MP IP board fpga
-		hps_sdram_p0_perform_resync_timing_analysis $opcs $opcname $inst ${::GLOBAL_hps_sdram_p0_corename} $family scale_factors $io_std $interface_type $period pins t summary MP IP board fpga SSN
 
 		#######################################
 		# PHY and Address/command Analyses
@@ -458,7 +464,7 @@ foreach inst $instances {
 	
 	write_timing_report
 
-	post_message -type critical_warning "Timing analysis was performed on core ${::GLOBAL_hps_sdram_p0_corename} using Quartus II v13.0 with a preliminary timing model and constraints. You must regenerate this IP in a future version of Quartus II to update the timing constraints to match the timing model."
+
 	incr inst_id
 }
 

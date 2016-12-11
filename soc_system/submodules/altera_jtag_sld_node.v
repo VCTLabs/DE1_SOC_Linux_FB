@@ -1,3 +1,16 @@
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
+// software and tools, and its AMPP partner logic functions, and any output 
+// files any of the foregoing (including device programming or simulation 
+// files), and any associated documentation or information are expressly subject 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
+// license agreement, including, without limitation, that your use is for the 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
+// agreement for further details.
+
+
 // synopsys translate_off
 `timescale 1 ns / 1 ns
 // synopsys translate_on
@@ -49,12 +62,18 @@ output virtual_state_uir;
 
 // PHY Instantiation
 `ifdef ALTERA_RESERVED_QIS
+    wire tdi_port;
+    wire [IRWIDTH - 1:0] ir_in_port;
+    always @(tdi_port)
+      tdi = tdi_port;
+    always @(ir_in_port)
+      ir_in = ir_in_port;
     sld_virtual_jtag_basic  sld_virtual_jtag_component (
                 .ir_out (ir_out),
                 .tdo (tdo),
-                .tdi (tdi),
+                .tdi (tdi_port),
                 .tck (tck),
-                .ir_in (ir_in),
+                .ir_in (ir_in_port),
                 .virtual_state_cir (virtual_state_cir),
                 .virtual_state_pdr (virtual_state_pdr),
                 .virtual_state_uir (virtual_state_uir),

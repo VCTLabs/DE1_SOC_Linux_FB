@@ -2,31 +2,33 @@
 #define _SEQUENCER_H_
 
 /*
-Copyright (c) 2012, Altera Corporation
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Altera Corporation nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL ALTERA CORPORATION BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* Copyright Altera Corporation (C) 2012-2014. All rights reserved
+*
+* SPDX-License-Identifier:  BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*  * Redistributions of source code must retain the above copyright
+*  notice, this list of conditions and the following disclaimer.
+*  * Redistributions in binary form must reproduce the above copyright
+*  notice, this list of conditions and the following disclaimer in the
+*  documentation and/or other materials provided with the distribution.
+*  * Neither the name of Altera Corporation nor the
+*  names of its contributors may be used to endorse or promote products
+*  derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL ALTERA CORPORATION BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 
 #if ENABLE_ASSERT
 #define ERR_IE_TEXT "Internal Error: Sub-system: %s, File: %s, Line: %d\n%s%s"
@@ -68,6 +70,30 @@ extern void err_report_internal_error (const char* description, const char* modu
 #define RW_MGR_DI_BASE (BASE_RW_MGR + 0x0010)
 #endif
 
+#if DDR3
+#define DDR3_MR1_ODT_MASK  0xFFFFFD99
+#define DDR3_MR2_ODT_MASK  0xFFFFF9FF
+#define DDR3_AC_MIRR_MASK  0x020A8
+
+#if LRDIMM
+// USER RTT_NOM: bits {4,3,2} of the SPD = bits {9,6,2} of the MR
+#define LRDIMM_SPD_MR_RTT_NOM(spd_byte)                                   \
+           (   (((spd_byte) & (1 << 4)) << (9-4))                         \
+             | (((spd_byte) & (1 << 3)) << (6-3))                         \
+             | (((spd_byte) & (1 << 2)) << (2-2)))
+
+// USER RTT_DRV: bits {1,0} of the SPD = bits {5,1} of the MR
+#define LRDIMM_SPD_MR_RTT_DRV(spd_byte)                                   \
+           (   (((spd_byte) & (1 << 1)) << (5-1))                         \
+             | (((spd_byte) & (1 << 0)) << (1-0)))
+
+// USER RTT_WR: bits {7,6} of the SPD = bits {10,9} of the MR
+#define LRDIMM_SPD_MR_RTT_WR(spd_byte)                                    \
+               (((spd_byte) & (3 << 6)) << (9-6))
+
+#endif // LRDIMM
+#endif // DDR3
+
 #define RW_MGR_LOAD_CNTR_0 BASE_RW_MGR + 0x0800
 #define RW_MGR_LOAD_CNTR_1 BASE_RW_MGR + 0x0804
 #define RW_MGR_LOAD_CNTR_2 BASE_RW_MGR + 0x0808
@@ -85,6 +111,8 @@ extern void err_report_internal_error (const char* description, const char* modu
 #define RW_MGR_SET_ACTIVE_RANK BASE_RW_MGR + 0x2400
 
 #define RW_MGR_LOOPBACK_MODE BASE_RW_MGR + 0x0200
+
+#define RW_MGR_ENABLE_REFRESH BASE_RW_MGR + 0x3000
 
 #define RW_MGR_RANK_NONE 0xFF
 #define RW_MGR_RANK_ALL 0x00
@@ -184,6 +212,7 @@ extern void err_report_internal_error (const char* description, const char* modu
 #define REG_FILE_TRK_RW_MGR_ADDR        (BASE_REG_FILE + 0x002C)
 #define REG_FILE_TRK_READ_DQS_WIDTH     (BASE_REG_FILE + 0x0030)
 #define REG_FILE_TRK_RFSH               (BASE_REG_FILE + 0x0034)
+#define CTRL_CONFIG_REG			(BASE_MMR      + 0x0000)
 #else
 /* Tracking slave addresses. */
 #define TRK_DTAPS_PER_PTAP     (BASE_TRK_MGR + 0x0000)
@@ -220,7 +249,8 @@ extern void err_report_internal_error (const char* description, const char* modu
 #endif
 #define PHY_MGR_AFI_RLAT				(BASE_PHY_MGR + 0x401c)
 
-#define PHY_MGR_CAL_SUCCESS				(1)
+#define PHY_MGR_CAL_RESET				(0)
+#define PHY_MGR_CAL_SUCCESS			(1)
 #define PHY_MGR_CAL_FAIL				(2)
 
 /* PHY manager command addresses. */
@@ -464,6 +494,49 @@ extern void err_report_internal_error (const char* description, const char* modu
 #define PHY_DEBUG_DISABLE_GUARANTEED_READ 0x00000010
 #define PHY_DEBUG_ENABLE_NON_DESTRUCTIVE_CALIBRATION 0x00000020
 
+// Init and Reset delay constants - Only use if defined by sequencer_defines.h,
+// otherwise, revert to defaults
+// Default for Tinit = (0+1) * ((202+1) * (2 * 131 + 1) + 1) = 53532 = 200.75us @ 266MHz
+#ifdef TINIT_CNTR0_VAL
+   #define SEQ_TINIT_CNTR0_VAL TINIT_CNTR0_VAL
+#else
+   #define SEQ_TINIT_CNTR0_VAL 0
+#endif
+
+#ifdef TINIT_CNTR1_VAL
+   #define SEQ_TINIT_CNTR1_VAL TINIT_CNTR1_VAL
+#else
+   #define SEQ_TINIT_CNTR1_VAL 202
+#endif
+
+#ifdef TINIT_CNTR2_VAL
+   #define SEQ_TINIT_CNTR2_VAL TINIT_CNTR2_VAL
+#else
+   #define SEQ_TINIT_CNTR2_VAL 131
+#endif
+
+
+// Default for Treset = (2+1) * ((252+1) * (2 * 131 + 1) + 1) = 133563 = 500.86us @ 266MHz
+#ifdef TRESET_CNTR0_VAL
+   #define SEQ_TRESET_CNTR0_VAL TRESET_CNTR0_VAL
+#else
+   #define SEQ_TRESET_CNTR0_VAL 2
+#endif
+
+#ifdef TRESET_CNTR1_VAL
+   #define SEQ_TRESET_CNTR1_VAL TRESET_CNTR1_VAL
+#else
+   #define SEQ_TRESET_CNTR1_VAL 252
+#endif
+
+#ifdef TRESET_CNTR2_VAL
+   #define SEQ_TRESET_CNTR2_VAL TRESET_CNTR2_VAL
+#else
+   #define SEQ_TRESET_CNTR2_VAL 131
+#endif
+
+
+
 /* Bitfield type changes depending on protocol */
 #if QDRII
 typedef long long t_btfld;
@@ -543,12 +616,32 @@ extern param_t *param;
 
 // External functions
 alt_u32 rw_mgr_mem_calibrate_full_test (alt_u32 min_correct, t_btfld *bit_chk, alt_u32 test_dm);
+#if ENABLE_NON_DES_CAL
+extern alt_u32 run_mem_calibrate (alt_u32 enable_non_des_c);
+#else
 extern alt_u32 run_mem_calibrate (void);
+#endif
 extern void rw_mgr_mem_calibrate_eye_diag_aid (void);
 extern void rw_mgr_load_mrs_calib (void);
 extern void rw_mgr_load_mrs_exec (void);
 extern void rw_mgr_mem_initialize (void);
 extern void rw_mgr_mem_dll_lock_wait(void);
+extern inline void scc_mgr_set_dq_in_delay (alt_u32 write_group, alt_u32 dq_in_group, alt_u32 delay);
+extern inline void scc_mgr_set_dq_out1_delay (alt_u32 write_group, alt_u32 dq_in_group, alt_u32 delay);
+extern inline void scc_mgr_set_dq_out2_delay (alt_u32 write_group, alt_u32 dq_in_group, alt_u32 delay);
+extern inline void scc_mgr_load_dq (alt_u32 dq_in_group);
+extern inline void scc_mgr_set_dqs_bus_in_delay (alt_u32 read_group, alt_u32 delay);
+extern inline void scc_mgr_load_dqs (alt_u32 dqs);
+extern void scc_mgr_set_group_dqs_io_and_oct_out1_gradual (alt_u32 write_group, alt_u32 delay);
+extern void scc_mgr_set_group_dqs_io_and_oct_out2_gradual (alt_u32 write_group, alt_u32 delay);
+extern void scc_mgr_set_dqs_en_delay_all_ranks (alt_u32 read_group, alt_u32 delay);
+extern void scc_mgr_set_dqs_en_phase_all_ranks (alt_u32 read_group, alt_u32 phase);
+extern void scc_mgr_set_dqdqs_output_phase_all_ranks (alt_u32 write_group, alt_u32 phase);
+extern inline void scc_mgr_set_dm_out1_delay (alt_u32 write_group, alt_u32 dm, alt_u32 delay);
+extern inline void scc_mgr_set_dm_out2_delay (alt_u32 write_group, alt_u32 dm, alt_u32 delay);
+extern inline void scc_mgr_load_dm (alt_u32 dm);
+extern void rw_mgr_incr_vfifo_auto(alt_u32 grp);
+extern void rw_mgr_decr_vfifo_auto(alt_u32 grp);
 #if HPS_HW
 extern int sdram_calibration(void);
 #endif

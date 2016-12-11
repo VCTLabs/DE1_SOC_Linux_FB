@@ -1,29 +1,31 @@
 /*
-Copyright (c) 2012, Altera Corporation
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Altera Corporation nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL ALTERA CORPORATION BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* Copyright Altera Corporation (C) 2012-2014. All rights reserved
+*
+* SPDX-License-Identifier:  BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*  * Redistributions of source code must retain the above copyright
+*  notice, this list of conditions and the following disclaimer.
+*  * Redistributions in binary form must reproduce the above copyright
+*  notice, this list of conditions and the following disclaimer in the
+*  documentation and/or other materials provided with the distribution.
+*  * Neither the name of Altera Corporation nor the
+*  names of its contributors may be used to endorse or promote products
+*  derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL ALTERA CORPORATION BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 
 #include "sequencer_defines.h"
 
@@ -113,7 +115,7 @@ void tclrpt_update_rank_group_mask(void)
 
 	// Currently the alt_u32 word param->skip_groups keeps all the groups.
 	TCLRPT_SET(debug_summary_report->group_mask[0], param->skip_groups);
-	active_groups = RW_MGR_MEM_IF_READ_DQS_WIDTH;
+	active_groups = RW_MGR_MEM_IF_WRITE_DQS_WIDTH;
 	for (i = 0; i < 32; i++)
 	{
 		if (param->skip_groups & (1 << i))
@@ -623,7 +625,7 @@ void tclrpt_mark_interface_as_response_ready(void)
 {
 	// Mark the interface as saying that the response to the requested
 	// command is ready.
-	debug_data->command_status = TCLDBG_TX_STATUS_RESPOSE_READY;
+	debug_data->command_status = TCLDBG_TX_STATUS_RESPONSE_READY;
 }
 
 void tclrpt_mark_interface_as_illegal_command(void)
@@ -636,20 +638,27 @@ void tclrpt_mark_interface_as_illegal_command(void)
 #if !HPS_HW
 void tclrpt_loop(void)
 {
-	alt_u32 rank;
-
+	alt_u32 rank, group, pin, pin_in_group, value;
+	alt_u32 rdimm_control_word_updated;
+	rdimm_control_word_updated = 0;	
 	// Set up the interface to be ready for access. The initial state is user mode.
 	tclrpt_mark_interface_as_ready();
 
 	// Forever just respond to commands
 	for (;;)
 	{
+		// This is to check if RDIMM Control Word has been updated
+		if ( rdimm_control_word_updated == 1 ) 
+		{
+			break;
+		}		
+		
 	    // KALEN: Do we need this in debug?
 	    // AIDIL: Yes since debug is turned on by default, not having this means deep
 	    // powerdown would stall controller
 		user_init_cal_req();
 	    
-		if (debug_data->command_status == TCLDBG_TX_STATUS_RESPOSE_READY
+		if (debug_data->command_status == TCLDBG_TX_STATUS_RESPONSE_READY
 				|| debug_data->command_status == TCLDBG_TX_STATUS_ILLEGAL_CMD)
 			switch (debug_data->requested_command)
 			{
@@ -664,6 +673,10 @@ void tclrpt_loop(void)
 		{
 			switch (debug_data->requested_command)
 			{
+				case TCLDBG_SET_UPDATE_PARAMETERS :
+					rdimm_control_word_updated = 1;
+					tclrpt_mark_interface_as_response_ready();
+					break;
 				case TCLDBG_CMD_WAIT_CMD :
 					//wait for commands
 					break;
@@ -673,11 +686,23 @@ void tclrpt_loop(void)
 					break;
 				case TCLDBG_RUN_MEM_CALIBRATE :
 					// Run the full memory calibration
-					// Set the PHY to be in debug mode
-					gbl->phy_debug_mode_flags |= PHY_DEBUG_IN_DEBUG_MODE;
+#if ENABLE_NON_DES_CAL					
+					run_mem_calibrate(0);
+#else
 					run_mem_calibrate();
+#endif
 					tclrpt_mark_interface_as_response_ready();
 					break;
+				case TCLDBG_RUN_NON_DES_MEM_CALIBRATE :
+					// Run the full memory calibration
+#if ENABLE_NON_DES_CAL					
+					run_mem_calibrate(1);
+#else
+					run_mem_calibrate();
+#endif
+					tclrpt_mark_interface_as_response_ready();
+					break;
+
 				case TCLDBG_RUN_EYE_DIAGRAM_PATTERN :
 					// Generate the pattern to view eye diagrams
 					// This function never returns
@@ -748,6 +773,247 @@ void tclrpt_loop(void)
 				  }
 				  tclrpt_mark_interface_as_response_ready();
 				  break;
+				#if ENABLE_DELAY_CHAIN_WRITE
+				case TCLDBG_SET_DQ_D1_DELAY :
+					// DQ D1 Delay (I/O buffer to input register)
+					pin = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+					group = pin/RW_MGR_MEM_DQ_PER_READ_DQS;
+					pin_in_group = pin%RW_MGR_MEM_DQ_PER_READ_DQS;
+
+					// Make sure parameter values are legal
+					if (pin < RW_MGR_MEM_DATA_WIDTH && value <= IO_IO_IN_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dq_in_delay(group, pin_in_group, value);
+						scc_mgr_load_dq (pin_in_group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQ_D5_DELAY :
+					// DQ D5 Delay (output register to I/O buffer)
+					pin = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+					group = pin/RW_MGR_MEM_DQ_PER_WRITE_DQS;
+					pin_in_group = pin%RW_MGR_MEM_DQ_PER_WRITE_DQS;
+
+					// Make sure parameter values are legal
+					if (pin < RW_MGR_MEM_DATA_WIDTH && value <= IO_IO_OUT1_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dq_out1_delay(group, pin_in_group, value);
+						scc_mgr_load_dq (pin_in_group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQ_D6_DELAY :
+					// DQ D6 Delay (output register to I/O buffer)
+					pin = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+					group = pin/RW_MGR_MEM_DQ_PER_WRITE_DQS;
+					pin_in_group = pin%RW_MGR_MEM_DQ_PER_WRITE_DQS;
+
+					// Make sure parameter values are legal
+					if (pin < RW_MGR_MEM_DATA_WIDTH && value <= IO_IO_OUT2_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dq_out2_delay(group, pin_in_group, value);
+						scc_mgr_load_dq (pin_in_group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQS_D4_DELAY :
+					// DQS D4 Delay (DQS delay chain)
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_DQS_IN_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dqs_bus_in_delay(group, value);
+						scc_mgr_load_dqs (group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQDQS_OUTPUT_PHASE :
+					// DQS DQ Output Phase (deg) = DQS Output Phase (deg) - 90
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_DQDQS_OUT_PHASE_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dqdqs_output_phase_all_ranks (group, value);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQS_D5_DELAY :
+					// DQS D5 Delay (output register to I/O buffer) = D5 OCT Delay (OCT to I/O buffer)
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_IO_OUT1_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_group_dqs_io_and_oct_out1_gradual (group, value);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQS_D6_DELAY :
+					// DQS D6 Delay (output register to I/O buffer) = D6 OCT Delay (OCT to I/O buffer)
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_IO_OUT2_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_group_dqs_io_and_oct_out2_gradual (group, value);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQS_EN_PHASE :
+					// DQS Enable Phase (deg)
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_DQS_EN_PHASE_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dqs_en_phase_all_ranks (group, value);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DQS_T11_DELAY :
+					// DQS T11 Delay (DQS post-amble delay)
+					group = debug_data->command_parameters[0];
+					value = debug_data->command_parameters[1];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH && value <= IO_DQS_EN_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dqs_en_delay_all_ranks (group, value);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DM_D5_DELAY :
+					// DM D5 OCT Delay (OCT to I/O buffer)
+					group = debug_data->command_parameters[0];
+					pin_in_group = debug_data->command_parameters[1];
+					value = debug_data->command_parameters[2];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_WRITE_DQS_WIDTH && pin_in_group < RW_MGR_NUM_DM_PER_WRITE_GROUP && value <= IO_IO_OUT1_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dm_out1_delay(group, pin_in_group, value);
+						scc_mgr_load_dm (pin_in_group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SET_DM_D6_DELAY :
+					// DM D6 OCT Delay (OCT to I/O buffer)
+					group = debug_data->command_parameters[0];
+					pin_in_group = debug_data->command_parameters[1];
+					value = debug_data->command_parameters[2];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_WRITE_DQS_WIDTH && pin_in_group < RW_MGR_NUM_DM_PER_WRITE_GROUP && value <= IO_IO_OUT2_DELAY_MAX) {
+						IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+						scc_mgr_set_dm_out2_delay(group, pin_in_group, value);
+						scc_mgr_load_dm (pin_in_group);
+						IOWR_32DIRECT (SCC_MGR_UPD, 0, 0);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_REMARGIN_DQ :
+					rank = debug_data->command_parameters[0];
+					group = debug_data->command_parameters[1];
+					// Pre-margining process
+					initialize();
+					rw_mgr_mem_initialize ();
+					mem_config ();
+					
+					IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+					run_dq_margining(rank, group);
+					
+					// Post-margining process
+					rw_mgr_mem_handoff ();
+					IOWR_32DIRECT (PHY_MGR_MUX_SEL, 0, 0); // Give control back to user logic.
+					tclrpt_mark_interface_as_response_ready();
+					break;
+				case TCLDBG_REMARGIN_DM :
+					rank = debug_data->command_parameters[0];
+					group = debug_data->command_parameters[1];
+					// Pre-margining process
+					initialize();
+					rw_mgr_mem_initialize ();
+					mem_config ();
+					
+					IOWR_32DIRECT (SCC_MGR_GROUP_COUNTER, 0, group);
+					run_dm_margining(rank, group);
+					
+					// Post-margining process
+					rw_mgr_mem_handoff ();
+					IOWR_32DIRECT (PHY_MGR_MUX_SEL, 0, 0); // Give control back to user logic.
+					tclrpt_mark_interface_as_response_ready();
+					break;
+				case TCLDBG_INCR_VFIFO :
+					// Increment the VFIFO by 1 step
+					group = debug_data->command_parameters[0];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH) {
+						rw_mgr_incr_vfifo_auto(group);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_DECR_VFIFO :
+					// Decrement the VFIFO by 1 step
+					group = debug_data->command_parameters[0];
+
+					// Make sure parameter values are legal
+					if (group < RW_MGR_MEM_IF_READ_DQS_WIDTH) {
+						rw_mgr_decr_vfifo_auto(group);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				case TCLDBG_SELECT_SHADOW_REG :
+					rank = debug_data->command_parameters[0];
+					if (rank < RW_MGR_MEM_NUMBER_OF_RANKS) {
+						select_shadow_regs_for_update (rank, 0, 1);
+						tclrpt_mark_interface_as_response_ready();
+					} else {
+						tclrpt_mark_interface_as_illegal_command();
+					}
+					break;
+				#endif // ENABLE_DELAY_CHAIN_WRITE
 				default :
 					// Illegal command
 					tclrpt_mark_interface_as_illegal_command();

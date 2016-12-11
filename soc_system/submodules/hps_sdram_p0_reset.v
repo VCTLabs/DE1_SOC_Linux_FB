@@ -1,13 +1,13 @@
-// (C) 2001-2013 Altera Corporation. All rights reserved.
-// Your use of Altera Corporation's design tools, logic functions and other 
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files any of the foregoing (including device programming or simulation 
 // files), and any associated documentation or information are expressly subject 
-// to the terms and conditions of the Altera Program License Subscription 
-// Agreement, Altera MegaCore Function License Agreement, or other applicable 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
 // license agreement, including, without limitation, that your use is for the 
-// sole purpose of programming logic devices manufactured by Altera and sold by 
-// Altera or its authorized distributors.  Please refer to the applicable 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
 
@@ -85,7 +85,7 @@ wire	[MEM_READ_DQS_WIDTH-1:0] reset_n_read_capture;
 		.clk			(pll_afi_clk),
 		.reset_n_sync	(reset_n_afi_clk)
 	);
-	defparam ureset_afi_clk.RESET_SYNC_STAGES = 5; 
+	defparam ureset_afi_clk.RESET_SYNC_STAGES = 15; 
 	defparam ureset_afi_clk.NUM_RESET_OUTPUT = NUM_AFI_RESET;
 
 	hps_sdram_p0_reset_sync	ureset_ctl_reset_clk(
@@ -93,14 +93,16 @@ wire	[MEM_READ_DQS_WIDTH-1:0] reset_n_read_capture;
 		.clk			(pll_afi_clk),
 		.reset_n_sync	({ctl_reset_n, ctl_reset_export_n})
 	);
-	defparam ureset_ctl_reset_clk.RESET_SYNC_STAGES = 5;
+	defparam ureset_ctl_reset_clk.RESET_SYNC_STAGES = 15;
 	defparam ureset_ctl_reset_clk.NUM_RESET_OUTPUT = 2;
 
-    hps_sdram_p0_reset_sync	ureset_addr_cmd_clk(
-        .reset_n        (phy_reset_n),
-        .clk            (pll_addr_cmd_clk),
-        .reset_n_sync   (reset_n_addr_cmd_clk)
-    );
+	hps_sdram_p0_reset_sync	ureset_addr_cmd_clk(
+		.reset_n			(phy_reset_n),
+		.clk				(pll_addr_cmd_clk),
+		.reset_n_sync	(reset_n_addr_cmd_clk)
+	);
+	defparam ureset_addr_cmd_clk.RESET_SYNC_STAGES = 15; 
+	defparam ureset_addr_cmd_clk.NUM_RESET_OUTPUT = 1;
 
 
 
@@ -109,34 +111,46 @@ wire	[MEM_READ_DQS_WIDTH-1:0] reset_n_read_capture;
 		.clk			(pll_dqs_ena_clk),
 		.reset_n_sync	(reset_n_resync_clk)
 	);
+	defparam ureset_resync_clk.RESET_SYNC_STAGES = 15; 
+	defparam ureset_resync_clk.NUM_RESET_OUTPUT = 1;
 
 	hps_sdram_p0_reset_sync	ureset_seq_clk(
 		.reset_n		(phy_reset_n),
 		.clk			(seq_clk),
 		.reset_n_sync	(reset_n_seq_clk)
 	);
+	defparam ureset_seq_clk.RESET_SYNC_STAGES = 15; 
+	defparam ureset_seq_clk.NUM_RESET_OUTPUT = 1;
 
 	hps_sdram_p0_reset_sync	ureset_scc_clk(
 		.reset_n		(phy_reset_n),
 		.clk			(scc_clk),
 		.reset_n_sync	(reset_n_scc_clk)
 	);
+	defparam ureset_scc_clk.RESET_SYNC_STAGES = 15; 
+	defparam ureset_scc_clk.NUM_RESET_OUTPUT = 1;
 
 	hps_sdram_p0_reset_sync	ureset_avl_clk(
 		.reset_n		(phy_reset_n),
 		.clk			(pll_avl_clk),
 		.reset_n_sync	(reset_n_avl_clk)
 	);
+	defparam ureset_avl_clk.RESET_SYNC_STAGES = 2; 
+	defparam ureset_avl_clk.NUM_RESET_OUTPUT = 1;
 
 generate
 genvar i;
 	for (i=0; i<MEM_READ_DQS_WIDTH; i=i+1)
 	begin: read_capture_reset
-    	hps_sdram_p0_reset_sync	ureset_read_capture_clk(
-    	    .reset_n        (phy_reset_mem_stable_n),
-    	    .clk            (read_capture_clk[i]),
-    	    .reset_n_sync   (reset_n_read_capture[i])
-    	);
+		hps_sdram_p0_reset_sync #(
+			.RESET_SYNC_STAGES(15),
+			.NUM_RESET_OUTPUT(1)
+		 )
+		ureset_read_capture_clk(
+			.reset_n			(phy_reset_mem_stable_n),
+			.clk				(read_capture_clk[i]),
+			.reset_n_sync	(reset_n_read_capture[i])
+		);
 	end
 endgenerate
 

@@ -1,13 +1,13 @@
-// (C) 2001-2013 Altera Corporation. All rights reserved.
-// Your use of Altera Corporation's design tools, logic functions and other 
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files any of the foregoing (including device programming or simulation 
 // files), and any associated documentation or information are expressly subject 
-// to the terms and conditions of the Altera Program License Subscription 
-// Agreement, Altera MegaCore Function License Agreement, or other applicable 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
 // license agreement, including, without limitation, that your use is for the 
-// sole purpose of programming logic devices manufactured by Altera and sold by 
-// Altera or its authorized distributors.  Please refer to the applicable 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
 
@@ -156,8 +156,8 @@ parameter ALTERA_ALTDQ_DQS2_FAST_SIM_MODEL = "";
 	defparam altdq_dqs2_inst.INPUT_FREQ = 400.0;
 	defparam altdq_dqs2_inst.INPUT_FREQ_PS = "2500 ps";
 	defparam altdq_dqs2_inst.DELAY_CHAIN_BUFFER_MODE = "high";
-	defparam altdq_dqs2_inst.DQS_PHASE_SETTING = 2;
-	defparam altdq_dqs2_inst.DQS_PHASE_SHIFT = 9000;
+	defparam altdq_dqs2_inst.DQS_PHASE_SETTING = 0;
+	defparam altdq_dqs2_inst.DQS_PHASE_SHIFT = 0;
 	defparam altdq_dqs2_inst.DQS_ENABLE_PHASE_SETTING = 3;
 	defparam altdq_dqs2_inst.USE_DYNAMIC_CONFIG = "true";
 	defparam altdq_dqs2_inst.INVERT_CAPTURE_STROBE = "true";
@@ -179,6 +179,7 @@ parameter ALTERA_ALTDQ_DQS2_FAST_SIM_MODEL = "";
 	defparam altdq_dqs2_inst.USE_OCT_ENA_IN_FOR_OCT = "true";
 	defparam altdq_dqs2_inst.PREAMBLE_TYPE = "high";
 	defparam altdq_dqs2_inst.EMIF_UNALIGNED_PREAMBLE_SUPPORT = "false";
+	defparam altdq_dqs2_inst.EMIF_BYPASS_OCT_DDIO = "false";
 	defparam altdq_dqs2_inst.USE_OFFSET_CTRL = "false";
 	defparam altdq_dqs2_inst.HR_DDIO_OUT_HAS_THREE_REGS = "false";
 	defparam altdq_dqs2_inst.DQS_ENABLE_PHASECTRL = "true";

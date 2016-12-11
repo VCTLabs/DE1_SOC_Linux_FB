@@ -1,13 +1,13 @@
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -123,7 +123,7 @@ if { ![info exists quartus(nameofexecutable)] || ($quartus(nameofexecutable) != 
 		return 1
 	}
 
-	catch { exec $cmd -t [ info script ] $project_name } output
+	set output [ exec $cmd -t [ info script ] $project_name ]
 
 	foreach line [split $output \n] {
 		set type info
@@ -159,6 +159,7 @@ source "$script_dir/hps_sdram_p0_parameters.tcl"
 source "$script_dir/hps_sdram_p0_pin_map.tcl"
 
 set family_name [string tolower [regsub -all " +" [get_global_assignment -name FAMILY] ""]]
+
 
 ##############################
 # Clean up stale assignments #
@@ -197,6 +198,7 @@ foreach inst $instances {
 	}
 	array set pins $ddr_db($inst)
 
+
 	hps_sdram_p0_get_rzq_pins $inst all_rzq_pins
 	# Set rzq pin I/O standard
 	foreach rzq_pin $all_rzq_pins {
@@ -224,6 +226,8 @@ foreach inst $instances {
     foreach ck_pin [ concat $pins(ck_pins) $pins(ckn_pins) ] {
       set_instance_assignment -name IO_STANDARD "DIFFERENTIAL $::GLOBAL_hps_sdram_p0_io_standard_differential" -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
       set_instance_assignment -name OUTPUT_TERMINATION "SERIES 40 OHM WITHOUT CALIBRATION" -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
+
+      set_instance_assignment -name D5_DELAY 2 -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
     }
 
     foreach ac_pin $pins(ac_wo_reset_pins) {
@@ -237,7 +241,7 @@ foreach inst $instances {
       set_instance_assignment -name BOARD_MODEL_NEAR_PULLUP_R OPEN -to $reset_pin -tag __$::GLOBAL_hps_sdram_p0_corename
       set_instance_assignment -name BOARD_MODEL_FAR_PULLDOWN_R OPEN -to $reset_pin -tag __$::GLOBAL_hps_sdram_p0_corename
       set_instance_assignment -name BOARD_MODEL_NEAR_PULLDOWN_R OPEN -to $reset_pin -tag __$::GLOBAL_hps_sdram_p0_corename
-      set_instance_assignment -name OUTPUT_TERMINATION "SERIES 40 OHM WITH CALIBRATION" -to $reset_pin -tag __$::GLOBAL_hps_sdram_p0_corename
+      set_instance_assignment -name OUTPUT_TERMINATION "SERIES 40 OHM WITHOUT CALIBRATION" -to $reset_pin -tag __$::GLOBAL_hps_sdram_p0_corename
     } 
 
     foreach dm_pin $pins(dm_pins) {
@@ -262,6 +266,8 @@ foreach inst $instances {
     foreach ck_pin [ concat $pins(ck_pins) $pins(ckn_pins) ] {
       set_instance_assignment -name IO_STANDARD "DIFFERENTIAL $::GLOBAL_hps_sdram_p0_io_standard_differential CLASS I" -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
       set_instance_assignment -name OUTPUT_TERMINATION "SERIES 50 OHM WITHOUT CALIBRATION" -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
+
+      set_instance_assignment -name D5_DELAY 2 -to $ck_pin -tag __$::GLOBAL_hps_sdram_p0_corename
     }
 
     foreach ac_pin $pins(ac_wo_reset_pins) {
@@ -336,6 +342,7 @@ if { [ llength $quartus(args) ] > 1 } {
 	}
 }
 
+set_global_assignment -name USE_DLL_FREQUENCY_FOR_DQS_DELAY_CHAIN ON
 set_global_assignment -name UNIPHY_SEQUENCER_DQS_CONFIG_ENABLE ON
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 

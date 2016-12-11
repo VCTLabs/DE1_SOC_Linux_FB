@@ -1,3 +1,16 @@
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
+// software and tools, and its AMPP partner logic functions, and any output 
+// files any of the foregoing (including device programming or simulation 
+// files), and any associated documentation or information are expressly subject 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
+// license agreement, including, without limitation, that your use is for the 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
+// agreement for further details.
+
+
 // This module is a simple clock crosser for control signals. It will take
 // the asynchronous control signal and synchronize it to the clk domain
 // attached to the clk input. It does so by passing the control signal
@@ -119,49 +132,45 @@ module altera_jtag_src_crosser (
 
 endmodule
 
-module altera_jtag_dc_streaming (
-                 clk,
-                 reset_n,
-                 source_data,
-                 source_valid,
-                 sink_data,
-                 sink_valid,
-                 sink_ready,
-                 resetrequest,
-				 debug_reset,
-				 mgmt_valid,
-				 mgmt_channel,
-				 mgmt_data
-                 );
-   input        clk;
-   input        reset_n;
-   output [7:0] source_data;
-   output       source_valid;
-   input [7:0]  sink_data;
-   input        sink_valid;
-   output       sink_ready;
-   output       resetrequest;
-   output       debug_reset;
-   output       mgmt_valid;
-   output       mgmt_data;
+module altera_jtag_dc_streaming  #(
+    parameter PURPOSE = 0, // for discovery of services behind this JTAG Phy - 0
+                           //   for JTAG Phy, 1 for Packets to Master
+    parameter UPSTREAM_FIFO_SIZE = 0,
+    parameter DOWNSTREAM_FIFO_SIZE = 0,
+    parameter MGMT_CHANNEL_WIDTH = -1
+) (
+    // Signals in the JTAG clock domain
+    input  wire       tck,
+    input  wire       tdi,
+    output wire       tdo,
+    input  wire [2:0] ir_in,
+    input  wire       virtual_state_cdr,
+    input  wire       virtual_state_sdr,
+    input  wire       virtual_state_udr,
 
-   parameter PURPOSE = 0; // for discovery of services behind this JTAG Phy
-   parameter UPSTREAM_FIFO_SIZE = 0;
-   parameter DOWNSTREAM_FIFO_SIZE = 0;
-   parameter MGMT_CHANNEL_WIDTH = -1;
+    input  wire       clk,
+    input  wire       reset_n,
+    output wire [7:0] source_data,
+    output wire       source_valid,
+    input  wire [7:0] sink_data,
+    input  wire       sink_valid,
+    output wire       sink_ready,
+    output wire       resetrequest,
+    output wire       debug_reset,
+    output wire       mgmt_valid,
+    output wire [(MGMT_CHANNEL_WIDTH>0?MGMT_CHANNEL_WIDTH:1)-1:0] mgmt_channel,
+    output wire       mgmt_data
+);
+
    // the tck to sysclk sync depth is fixed at 8
    // 8 is the worst case scenario from our metastability analysis, and since
    // using TCK serially is so slow we should have plenty of clock cycles.
-   parameter TCK_TO_SYSCLK_SYNC_DEPTH = 8;
+   localparam TCK_TO_SYSCLK_SYNC_DEPTH = 8;
    // The clk to tck path is fixed at 3 deep for Synchronizer depth.
    // Since the tck clock is so slow, no parameter is exposed.
-   parameter SYSCLK_TO_TCK_SYNC_DEPTH = 3;
+   localparam SYSCLK_TO_TCK_SYNC_DEPTH = 3;
 
-   output [(MGMT_CHANNEL_WIDTH>0?MGMT_CHANNEL_WIDTH:1)-1:0] mgmt_channel;
-   
-   // Signals in the JTAG clock domain
-   wire       jtag_clock;
-   wire       jtag_clock_reset_n; // system reset is synchronized with jtag_clock
+   wire       jtag_clock_reset_n; // system reset is synchronized with tck
    wire [7:0] jtag_source_data;
    wire       jtag_source_valid;
    wire [7:0] jtag_sink_data;
@@ -181,7 +190,7 @@ module altera_jtag_dc_streaming (
    altera_std_synchronizer #(
        .depth(SYSCLK_TO_TCK_SYNC_DEPTH)
    ) synchronizer (
-       .clk(jtag_clock),
+       .clk(tck),
        .reset_n(reset_n),
        .din(1'b1),
        .dout(jtag_clock_reset_n)
@@ -193,7 +202,14 @@ module altera_jtag_dc_streaming (
        .DOWNSTREAM_FIFO_SIZE(DOWNSTREAM_FIFO_SIZE),
        .MGMT_CHANNEL_WIDTH(MGMT_CHANNEL_WIDTH)
    ) jtag_streaming (
-       .tck(jtag_clock),
+       .tck              (tck),
+       .tdi              (tdi),
+       .tdo              (tdo),
+       .ir_in            (ir_in),
+       .virtual_state_cdr(virtual_state_cdr),
+       .virtual_state_sdr(virtual_state_sdr),
+       .virtual_state_udr(virtual_state_udr),
+
        .reset_n(jtag_clock_reset_n),
        .source_data(jtag_source_data),
        .source_valid(jtag_source_valid),
@@ -222,7 +238,7 @@ module altera_jtag_dc_streaming (
        .in_data(sink_data),
        .in_ready(sink_ready),
        .in_valid(sink_valid),
-       .out_clk(jtag_clock),
+       .out_clk(tck),
        .out_reset(~jtag_clock_reset_n),
        .out_data(jtag_sink_data),
        .out_ready(jtag_sink_ready),
@@ -232,7 +248,7 @@ module altera_jtag_dc_streaming (
    altera_jtag_src_crosser #(
        .SYNC_DEPTH(TCK_TO_SYSCLK_SYNC_DEPTH)
    ) source_crosser (
-       .sink_clk(jtag_clock),
+       .sink_clk(tck),
        .sink_reset_n(jtag_clock_reset_n),
        .sink_valid(jtag_source_valid),
        .sink_data(jtag_source_data),

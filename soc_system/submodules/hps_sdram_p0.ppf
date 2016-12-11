@@ -355,7 +355,8 @@
       <pin name="afi_rlat[4]" direction="output" scope="internal" />
       <pin name="afi_cal_success" direction="output" scope="internal" />
       <pin name="afi_cal_fail" direction="output" scope="internal" />
-      <pin name="scc_data" direction="input" scope="internal" />
+      <pin name="scc_data[0..0]" direction="input" scope="internal" />
+      <pin name="scc_data[0]" direction="input" scope="internal" />
       <pin name="scc_dqs_ena[3..0]" direction="input" scope="internal" />
       <pin name="scc_dqs_ena[0]" direction="input" scope="internal" />
       <pin name="scc_dqs_ena[1]" direction="input" scope="internal" />
@@ -1331,9 +1332,9 @@
       <pin name="afi_mem_clk_disable[0]" direction="input" scope="internal" />
       <pin name="pll_mem_clk" direction="input" scope="internal" />
       <pin name="pll_write_clk" direction="input" scope="internal" />
+      <pin name="pll_locked" direction="input" scope="internal" />
       <pin name="pll_write_clk_pre_phy_clk" direction="input" scope="internal" />
       <pin name="pll_addr_cmd_clk" direction="input" scope="internal" />
-      <pin name="pll_locked" direction="input" scope="internal" />
       <pin name="pll_avl_clk" direction="input" scope="internal" />
       <pin name="pll_config_clk" direction="input" scope="internal" />
       <pin name="pll_mem_phy_clk" direction="input" scope="internal" />

@@ -1,27 +1,53 @@
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
+// software and tools, and its AMPP partner logic functions, and any output 
+// files any of the foregoing (including device programming or simulation 
+// files), and any associated documentation or information are expressly subject 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
+// license agreement, including, without limitation, that your use is for the 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
+// agreement for further details.
+
+
 // synopsys translate_off
 `timescale 1 ns / 1 ns
 // synopsys translate_on
 
-module altera_jtag_streaming (
-    tck,
-    reset_n,
+module altera_jtag_streaming #(
+    parameter PURPOSE = 0,
+    parameter UPSTREAM_FIFO_SIZE = 0,
+    parameter DOWNSTREAM_FIFO_SIZE = 0,
+    parameter MGMT_CHANNEL_WIDTH = -1
+) (
+    // JTAG Signals
+    input  wire       tck,
+    input  wire       tdi,
+    output reg        tdo,
+    input  wire [2:0] ir_in,
+    input  wire       virtual_state_cdr,
+    input  wire       virtual_state_sdr,
+    input  wire       virtual_state_udr,
+    
+    input  wire       reset_n,
     // Source Signals
-    source_data,
-    source_valid,
+    output wire [7:0] source_data,
+    output wire       source_valid,
     // Sink Signals
-    sink_data,
-    sink_valid,
-    sink_ready,
+    input  wire [7:0] sink_data,
+    input  wire       sink_valid,
+    output wire       sink_ready,
     // Clock Debug Signals
-    clock_to_sample,
-    reset_to_sample,
+    input  wire       clock_to_sample,
+    input  wire       reset_to_sample,
     // Resetrequest signal
-    resetrequest,
+    output reg        resetrequest,
     // Debug reset and management channel
-    debug_reset,
-    mgmt_valid,
-    mgmt_channel,
-    mgmt_data
+    output wire       debug_reset,
+    output reg        mgmt_valid,
+    output reg  [(MGMT_CHANNEL_WIDTH>0?MGMT_CHANNEL_WIDTH:1)-1:0] mgmt_channel,
+    output reg        mgmt_data
 );
 
     // function to calculate log2, floored.
@@ -38,23 +64,11 @@ module altera_jtag_streaming (
       end    
     endfunction // flog2
 
-    // Used to identify the purpose of this physical endpoint
-    // This allows the appropriate service to be mounted on top of this node
-    // Possible Values:
-    //   UNKNOWN      0
-    //   TRANSACTO    1
-    //   CONFIG_ROM   2
-    //   PACKETSTREAM 3
-    //   X8_DEBUGGER  4
-    parameter PURPOSE = 0;
-    parameter UPSTREAM_FIFO_SIZE = 0;
-    parameter DOWNSTREAM_FIFO_SIZE = 0;
-    parameter MGMT_CHANNEL_WIDTH = -1;
     localparam UPSTREAM_ENCODED_SIZE = flog2(UPSTREAM_FIFO_SIZE);
     localparam DOWNSTREAM_ENCODED_SIZE = flog2(DOWNSTREAM_FIFO_SIZE);
 
-   parameter TCK_TO_SYSCLK_SYNC_DEPTH = 8;
-   parameter SYSCLK_TO_TCK_SYNC_DEPTH = 3;
+    localparam TCK_TO_SYSCLK_SYNC_DEPTH = 8;
+    localparam SYSCLK_TO_TCK_SYNC_DEPTH = 3;
 
     // IR values determine the operating modes
     localparam DATA     = 0;
@@ -74,30 +88,6 @@ module altera_jtag_streaming (
 
     localparam IRWIDTH = 3;
 	
-    output tck;
-    input  reset_n;
-    output [7:0] source_data;
-    output       source_valid;
-    input [7:0] sink_data;
-    input       sink_valid;
-    output      sink_ready;
-    input clock_to_sample;
-    input reset_to_sample;
-    output reg resetrequest = 1'b0;
-    output wire debug_reset;
-    output reg mgmt_valid;
-    output reg [(MGMT_CHANNEL_WIDTH>0?MGMT_CHANNEL_WIDTH:1)-1:0] mgmt_channel;
-    output reg mgmt_data;
-
-    // JTAG Signals
-    wire [IRWIDTH - 1 : 0] ir_out;
-    wire [IRWIDTH - 1 : 0] ir_in;
-    reg tdo = 0;
-    wire tdi;
-    wire sdr;
-    wire cdr;
-    wire udr;
-
     // State machine encoding for write_state
     localparam ST_BYPASS     = 'h0;
     localparam ST_HEADER_1   = 'h1;
@@ -268,7 +258,7 @@ module altera_jtag_streaming (
         if (ir_in == DATA) begin
 
 
-            if (cdr) begin
+            if (virtual_state_cdr) begin
                 if (offset == 'b0) begin
                     write_state <= ST_HEADER_1;
                 end else begin
@@ -288,7 +278,7 @@ module altera_jtag_streaming (
                 valid_write_data_length_byte_counter  <= 0;
             end
 
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 // Discard bypass bits, then decode the 16-bit header
                 //           3                  3               10
                 // +-------------------+------------------+-------------+
@@ -376,7 +366,7 @@ module altera_jtag_streaming (
         //
         if (ir_in == DATA) begin
 
-            if (cdr) begin
+            if (virtual_state_cdr) begin
 
                 read_state <= ST_HEADER;
                 // Offset is rounded to nearest ceiling x8 to byte-align padded bits
@@ -397,7 +387,7 @@ module altera_jtag_streaming (
 
             end
 
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 //                   10                        1
                 // +-----------------------------------+----------------+
                 // |              reserved             | data_available |
@@ -470,10 +460,10 @@ module altera_jtag_streaming (
 
         // Loopback mode
         if (ir_in == LOOPBACK) begin
-            if (cdr) begin
+            if (virtual_state_cdr) begin
                 dr_loopback <= 1'b0; // capture 0
             end
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 // Shift dr_loopback
                 dr_loopback <= tdi;
             end
@@ -481,14 +471,14 @@ module altera_jtag_streaming (
 
         // Debug mode
         if (ir_in == DEBUG) begin
-            if (cdr) begin
+            if (virtual_state_cdr) begin
                 dr_debug <= {clock_sensor_sync, clock_to_sample_div2_sync, reset_to_sample_sync};
             end
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 // Shift dr_debug
                 dr_debug <= {1'b0, dr_debug[2:1]}; // tdi is ignored
             end
-            if (udr) begin
+            if (virtual_state_udr) begin
                 clock_sense_reset_n <= 1'b0;
             end else begin
                 clock_sense_reset_n <= 1'b1;
@@ -497,10 +487,10 @@ module altera_jtag_streaming (
 
         // Info mode
         if (ir_in == INFO) begin
-            if (cdr) begin
+            if (virtual_state_cdr) begin
                 dr_info <= {PURPOSE[2:0], UPSTREAM_ENCODED_SIZE[3:0], DOWNSTREAM_ENCODED_SIZE[3:0]};
             end
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 // Shift dr_info
                 dr_info <= {1'b0, dr_info[10:1]}; // tdi is ignored
             end
@@ -508,14 +498,14 @@ module altera_jtag_streaming (
 
         // Control mode
         if (ir_in == CONTROL) begin
-            if (cdr) begin
+            if (virtual_state_cdr) begin
                 dr_control <= 'b0; // capture 0
             end
-            if (sdr) begin
+            if (virtual_state_sdr) begin
                 // Shift dr_control
                 dr_control <= {tdi, dr_control[8:1]};
             end
-            if (udr) begin
+            if (virtual_state_udr) begin
                 // Update resetrequest and offset
                 {resetrequest, offset} <= dr_control;
             end
@@ -524,7 +514,7 @@ module altera_jtag_streaming (
     end
 
     always @ * begin
-        if (sdr) begin
+        if (virtual_state_sdr) begin
             case (ir_in)
                 DATA:     tdo <= dr_data_out[0];
                 LOOPBACK: tdo <= dr_loopback;
@@ -538,23 +528,6 @@ module altera_jtag_streaming (
             tdo <= 1'b0;
         end
     end
-
-    // SLD node instantiation
-    altera_jtag_sld_node node (
-        .ir_out             (ir_out),
-        .tdo                (tdo),
-        .ir_in              (ir_in),
-        .tck                (tck),
-        .tdi                (tdi),
-        .virtual_state_cdr  (cdr),
-        .virtual_state_cir  (),
-        .virtual_state_e1dr (),
-        .virtual_state_e2dr (),
-        .virtual_state_pdr  (),
-        .virtual_state_sdr  (sdr),
-        .virtual_state_udr  (udr),
-        .virtual_state_uir  ()
-    );
 
     // Idle Remover
     altera_avalon_st_idle_remover idle_remover (
@@ -600,15 +573,15 @@ module altera_jtag_streaming (
         always @ (posedge tck) begin
             // Debug mode
             if (ir_in == MGMT) begin
-                if (cdr) begin
+                if (virtual_state_cdr) begin
                     dr_mgmt <= 'b0;
                     dr_mgmt[MGMT_CHANNEL_WIDTH+2] <= 1'b1;
                 end
-                if (sdr) begin
+                if (virtual_state_sdr) begin
                     // Shift dr_debug
                     dr_mgmt <= {tdi, dr_mgmt[MGMT_CHANNEL_WIDTH+2:1]};
                 end
-                if (udr) begin
+                if (virtual_state_udr) begin
                     mgmt_out <= dr_mgmt;
                     mgmt_toggle <= mgmt_out[MGMT_CHANNEL_WIDTH+2] ? 1'b0 : ~mgmt_toggle;
                 end
