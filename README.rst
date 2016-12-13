@@ -27,26 +27,42 @@ export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
 ================
 
-When a new shell is opened the path is setup. It depends on the environment.
+The script env.sh further sets up the environment based on the operating environment.
 
 For 64b Ubuntu 16.04 with user testy it sets these exports:
 
 /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin
+
 /home/testy/intelFPGA_lite/16.1/quartus/bin
+
 /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
 
 Update Process
@@ -57,7 +73,28 @@ with Quartus tools::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
 
+It will update:
+
+soc_system.qsys
+
+Than:
+
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
+
+It will update several files and directories including:
+
+	DE1_SOC_Linux_FB.qsf
+	hps_sdram_p0_summary.csv
+	soc_system.qsys
+	soc_system.sopcinfo
+
+	soc_system/
+		soc_system_generation.rpt
+		soc_system.xml
+		soc_system.html
+		synthesis/
+	db/
+	
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
 $ quartus_asm  DE1_SOC_Linux_FB
