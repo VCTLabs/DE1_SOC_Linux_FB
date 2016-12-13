@@ -108,13 +108,18 @@ https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug
 https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
 https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
 
-So to setup for dts generation that you may have to manually merge to the latest linux kernel:
+To create the dts file you will need the sopc2dts utility. You can create it:
 
-cd ..
 git clone https://github.com/wgoossens/sopc2dts
 cd sopc2dts
-java -jar sopc2dts.jar -i ../DE1_SOC_Linux_FB/soc_system.sopcinfo -o ../DE1_SOC_Linux_FB/soc_system.dts
+make
 cd -
+
+You invoke it this way:
+java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
+
+or for a gui interface:
+java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
 
 At this point we have these essential generated files:
 =====================================================
