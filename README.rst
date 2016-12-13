@@ -32,21 +32,37 @@ The script env.sh further sets up the environment based on the operating environ
 For 64b Ubuntu 16.04 with user testy it sets these exports:
 
 /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+
 /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
+
 /home/testy/intelFPGA/16.1/embedded/ds-5/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
+
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin
+
 /home/testy/intelFPGA_lite/16.1/quartus/bin
+
 /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
 
 Update Process
@@ -55,14 +71,21 @@ Update Process
 Design files and directories:
 
 	DE1_SOC_Linux_FB.qpf
+
 	DE1_SOC_Linux_FB.sdc
+
 	DE1_SOC_Linux_FB.v
+
 	DE1_SOC_Linux_FB.qsf
+
 	soc_system.qsys
 	
 	ip/
+
 	vga_pll.*
+
 	vga_pll/
+
 	
 Upgrade project IP cores:
 
@@ -80,21 +103,30 @@ $ qsys-generate soc_system.qsys --synthesis=VERILOG
 Will update several files and directories including:
 
 	DE1_SOC_Linux_FB.qsf
+
 	soc_system.qsys
 
 Output files:
 	
 	hps_sdram_p0_summary.csv
+
 	soc_system.sopcinfo
+
 	soc_system/
+
 		soc_system_generation.rpt
+
 		soc_system.xml
+
 		soc_system.html <-- description of generated system
+
 
 These will actually build the system:
 
 $ quartus_map  DE1_SOC_Linux_FB
+
 $ quartus_fit  DE1_SOC_Linux_FB
+
 $ quartus_asm  DE1_SOC_Linux_FB
 
 Convert the .sof file to a firmware blob::
@@ -105,44 +137,66 @@ $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 Generating the .dts file is interesting. These are useful guides:
 
 https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
+
 https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
+
 https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
 
 To create the dts file you will need the sopc2dts utility. You can create it:
 
 git clone https://github.com/wgoossens/sopc2dts
+
 cd sopc2dts
+
 make
+
 cd -
 
 You invoke it this way:
+
 java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
 
+
 or for a gui interface:
+
 java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
 
 At this point we have these essential generated files:
 =====================================================
 
 soc_system.rbf
+
 soc_system.sopcinfo
+
 soc_system/soc_system.html
+
 soc_system/soc_system_generation.rpt
+
 soc_system.rbf
+
 soc_system.dts
+
 
 These files are also generaated:
 
 DE1_SOC_Linux_FB.sld
+
 DE1_SOC_Linux_FB.fit.rpt
+
 DE1_SOC_Linux_FB.fit.summary
+
 DE1_SOC_Linux_FB.fit.smsg
+
 DE1_SOC_Linux_FB.pin
+
 DE1_SOC_Linux_FB.map.rpt
+
 DE1_SOC_Linux_FB.map.summary
+
 DE1_SOC_Linux_FB.map.smsg
 
 c5_pin_model_dump.txt
+
 
 --------------------
 
