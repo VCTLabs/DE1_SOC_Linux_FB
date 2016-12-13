@@ -18,6 +18,9 @@ soc_system/synthesis/*.gip
 soc_system/synthesis/*.svp
 soc_system/synthesis/submodules/*
 
+soc_system/synthesis/soc_system.qip
+soc_system/synthesis/soc_system_hps_0_hps.svd
+
 stamp/*
 
 *.done
