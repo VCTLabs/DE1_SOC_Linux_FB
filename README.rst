@@ -32,69 +32,67 @@ The script env.sh further sets up the environment based on the operating environ
 For 64b Ubuntu 16.04 with user testy it sets these exports:
 
 /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
-
 /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
-
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
-
 /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
-
 /home/testy/intelFPGA/16.1/embedded/ds-5/bin
-
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
-
 /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
-
 /home/testy/intelFPGA_lite/16.1/nios2eds/bin
-
 /home/testy/intelFPGA_lite/16.1/quartus/bin
-
 /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
 
 Update Process
 ==============
 
-Upgrade project IP cores, re-generate the VERILOG code (using Qsys) then rebuild
-with Quartus tools::
+Design files and directories:
+
+	DE1_SOC_Linux_FB.qpf
+	DE1_SOC_Linux_FB.sdc
+	DE1_SOC_Linux_FB.v
+	DE1_SOC_Linux_FB.qsf
+	soc_system.qsys
+	
+	ip/
+	vga_pll.*
+	vga_pll/
+	
+Upgrade project IP cores:
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
 
-It will update:
+Will update:
 
 soc_system.qsys
 
-Than:
+
+Regenerate the VERILOG using QSYS:
 
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
 
-It will update several files and directories including:
+Will update several files and directories including:
 
 	DE1_SOC_Linux_FB.qsf
-	hps_sdram_p0_summary.csv
 	soc_system.qsys
-	soc_system.sopcinfo
 
+Output files:
+	
+	hps_sdram_p0_summary.csv
+	soc_system.sopcinfo
 	soc_system/
 		soc_system_generation.rpt
 		soc_system.xml
-		soc_system.html
-		synthesis/
-	db/
-	
+		soc_system.html <-- description of generated system
+
+These will actually build the system:
+
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
 $ quartus_asm  DE1_SOC_Linux_FB
@@ -103,6 +101,21 @@ Convert the .sof file to a firmware blob::
 
 $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 
+
+Generating the .dts file is interesting. These are useful guides:
+
+https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
+https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
+https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
+
+So to setup for dts generation that you may have to manually merge to the latest linux kernel:
+
+cd ..
+git clone https://github.com/wgoossens/sopc2dts
+cd sopc2dts
+java -jar sopc2dts.jar -i ../DE1_SOC_Linux_FB/soc_system.sopcinfo -o ../DE1_SOC_Linux_FB/soc_system.dts
+cd -
+
 At this point we have these essential generated files:
 =====================================================
 
@@ -110,6 +123,23 @@ soc_system.rbf
 soc_system.sopcinfo
 soc_system/soc_system.html
 soc_system/soc_system_generation.rpt
+soc_system.rbf
+soc_system.dts
+
+These files are also generaated:
+
+DE1_SOC_Linux_FB.sld
+DE1_SOC_Linux_FB.fit.rpt
+DE1_SOC_Linux_FB.fit.summary
+DE1_SOC_Linux_FB.fit.smsg
+DE1_SOC_Linux_FB.pin
+DE1_SOC_Linux_FB.map.rpt
+DE1_SOC_Linux_FB.map.summary
+DE1_SOC_Linux_FB.map.smsg
+
+c5_pin_model_dump.txt
+
+--------------------
 
 Generate BSP dir
 ================
@@ -136,8 +166,6 @@ Example command assuming u-boot and project source dirs are parallel::
 
 $ cd path/to/u-boot
 $ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
-
-
 
 U-Boot Notes
 ============
