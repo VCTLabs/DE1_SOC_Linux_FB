@@ -35,21 +35,21 @@ Add this to your ~/.bashrc file::
   export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
   . $SOCEDS_DEST_ROOT/env.sh
 
-There is a slight difference in QUARTUS_ROOT_DIR in the lite addition:
+There is a slight difference in QUARTUS_ROOT_DIR in the lite addition::
 
   QUARTUS_ROOT_DIR=$ALTERA_LITE_PATH/quartus
 
-And these additonal optional items:
+And these additonal optional items::
 
   $ALTERA_LITE_PATH/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
   $ALTERA_LITE_PATH/nios2eds/sdk2/bin
   $ALTERA_LITE_PATH/nios2eds/bin
 
-Rather than:
+Rather than::
 
   QUARTUS_ROOT_DIR=ALTERA_PATH/qprogrammer
 
-In either case you may want to setup the path to the BSP editor:
+In either case you may want to setup the path to the BSP editor::
 
   export BSP_EDITOR_BINDIR=$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
@@ -59,7 +59,8 @@ Project Update/Build Process
 Update Process
 ==============
 
-Design files and directories:
+Design files and directories::
+
 	DE1_SOC_Linux_FB.qpp
 	DE1_SOC_Linux_FB.sdc
 	DE1_SOC_Linux_FB.v
@@ -69,24 +70,24 @@ Design files and directories:
 	vga_pll.*
 	vga_pll/
 
-Upgrade project IP cores:
+Upgrade project IP cores::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
 
-Will update:
+Will update::
 
   soc_system.qsys
 
-Regenerate the VERILOG using QSYS:
+Regenerate the VERILOG using QSYS::
 
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
 
-Will update several files and directories including:
+Will update several files and directories including::
 
   DE1_SOC_Linux_FB.qsf
   soc_system.qsys
 
-Output files:
+Output files::
 	
   hps_sdram_p0_summary.csv
   soc_system.sopcinfo
@@ -95,7 +96,7 @@ Output files:
   soc_system.xml
   soc_system.html
 
-These will actually build the system:
+These will actually build the system::
 
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
@@ -109,45 +110,47 @@ $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
    then ``make sof``.  Do not run ``make scrub_clean`` since
    it will remove important bits required by the project.
 
-A script is included that will the generated files:
+A script is included that will the generated files::
 
   do_clean.sh
 
 If you want to experiment with building the .dts files and headers.
-Currently this does NOT work apprpriately for 16.x and current kernels:
+Currently this does NOT work apprpriately for 16.x and current kernels.
 
-These are useful guides:
+These are useful guides::
 
   https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
   https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
   https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
 
-To create the dts file you will need the sopc2dts utility. You can create it:
+To create the dts file you will need the sopc2dts utility. You can create it::
 
   git clone https://github.com/wgoossens/sopc2dts
   cd sopc2dts
   make
   cd -
 
-You invoke it this way:
+You invoke it this way::
 
   java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
 
-or for a gui interface:
+or for a gui interface::
 
   java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
 
-At this point we have these essential generated files:
-=====================================================
+Essential files
+===============
 
-soc_system.rbf
-soc_system.sopcinfo
-soc_system/soc_system.html
-soc_system/soc_system_generation.rpt
-soc_system.rbf
-soc_system.dts
+At this point we have these essential generated files::
 
-These files are also generaated:
+  soc_system.rbf
+  soc_system.sopcinfo
+  soc_system/soc_system.html
+  soc_system/soc_system_generation.rpt
+  soc_system.rbf
+  soc_system.dts
+
+These files are also generaated::
 
   DE1_SOC_Linux_FB.sld
   DE1_SOC_Linux_FB.fit.rpt
