@@ -39,3 +39,5 @@ sopc2dts/*
 
 build/*
 
+.qsys_edit/*
+
