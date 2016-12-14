@@ -2,99 +2,80 @@
  DE1_SOC_Linux_FB
 ==================
 
-Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
+Demo project for DE1-SoC board, updated for Quartus/Qsys 16.1.
 
-Environment setup
-=================
+If your qsys/quartus/soceds installs went correctly, you should be able
+to run the env.sh script in your shell and start compiling::
 
-Add this to your ~/.bashrc file:
+$ ${HOME}/intelFPGA/16.1/embedded/embedded_command_shell.sh
 
-export ALTERA_PATH=$HOME/intelFPGA/16.1
-export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+If you want to know more, read on...
 
-export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
+.. note:: If you run the script as above it will exec a new bash using
+   your default environment (~/.bashrc) but if you source it instead
+   (as below) you will keep your original shell.  The one thing it
+   currently does not add is the path to the bsp tools.
 
-export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
-export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
-export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
+(Manual) Environment setup
+==========================
 
-export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
-export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
+Add this to your ~/.bashrc file::
 
-. $SOCEDS_DEST_ROOT/env.sh
+  export ALTERA_PATH=$HOME/intelFPGA/16.1
+  export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
 
-export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
+  export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
 
-================
+  export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
+  export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR_OVERRIDE
 
-The script env.sh further sets up the environment based on the operating environment.
+  export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
 
-For 64b Ubuntu 16.04 with user testy it sets these exports:
+  export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
+  export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
+  . $SOCEDS_DEST_ROOT/env.sh
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+There is a slight difference in QUARTUS_ROOT_DIR in the lite addition:
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+  QUARTUS_ROOT_DIR=$ALTERA_LITE_PATH/quartus
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+And these additonal optional items:
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+  $ALTERA_LITE_PATH/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+  $ALTERA_LITE_PATH/nios2eds/sdk2/bin
+  $ALTERA_LITE_PATH/nios2eds/bin
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+Rather than:
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+  QUARTUS_ROOT_DIR=ALTERA_PATH/qprogrammer
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+In either case you may want to setup the path to the BSP editor:
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+  export BSP_EDITOR_BINDIR=$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
-
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
-
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
-
-/home/testy/intelFPGA/16.1/embedded/ds-5/bin
-
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
-
-/home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
-
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin
-
-/home/testy/intelFPGA_lite/16.1/quartus/bin
-
-/home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+Project Update/Build Process
+============================
 
 Update Process
 ==============
 
 Design files and directories:
-
-	DE1_SOC_Linux_FB.qpf
-
+	DE1_SOC_Linux_FB.qpp
 	DE1_SOC_Linux_FB.sdc
-
 	DE1_SOC_Linux_FB.v
-
 	DE1_SOC_Linux_FB.qsf
-
 	soc_system.qsys
-	
 	ip/
-
 	vga_pll.*
-
 	vga_pll/
 
-	
 Upgrade project IP cores:
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
 
 Will update:
 
-soc_system.qsys
-
+  soc_system.qsys
 
 Regenerate the VERILOG using QSYS:
 
@@ -102,101 +83,81 @@ $ qsys-generate soc_system.qsys --synthesis=VERILOG
 
 Will update several files and directories including:
 
-	DE1_SOC_Linux_FB.qsf
-
-	soc_system.qsys
+  DE1_SOC_Linux_FB.qsf
+  soc_system.qsys
 
 Output files:
 	
-	hps_sdram_p0_summary.csv
-
-	soc_system.sopcinfo
-
-	soc_system/
-
-		soc_system_generation.rpt
-
-		soc_system.xml
-
-		soc_system.html <-- description of generated system
-
+  hps_sdram_p0_summary.csv
+  soc_system.sopcinfo
+  soc_system/
+  soc_system_generation.rpt
+  soc_system.xml
+  soc_system.html
 
 These will actually build the system:
 
 $ quartus_map  DE1_SOC_Linux_FB
-
 $ quartus_fit  DE1_SOC_Linux_FB
-
 $ quartus_asm  DE1_SOC_Linux_FB
 
 Convert the .sof file to a firmware blob::
 
 $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 
+.. note:: To use the project Makefile, run ``make clean`` and 
+   then ``make sof``.  Do not run ``make scrub_clean`` since
+   it will remove important bits required by the project.
 
-Generating the .dts file is interesting. These are useful guides:
+A script is included that will the generated files:
 
-https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
+  do_clean.sh
 
-https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
+If you want to experiment with building the .dts files and headers.
+Currently this does NOT work apprpriately for 16.x and current kernels:
 
-https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
+These are useful guides:
+
+  https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
+  https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
+  https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
 
 To create the dts file you will need the sopc2dts utility. You can create it:
 
-git clone https://github.com/wgoossens/sopc2dts
-
-cd sopc2dts
-
-make
-
-cd -
+  git clone https://github.com/wgoossens/sopc2dts
+  cd sopc2dts
+  make
+  cd -
 
 You invoke it this way:
 
-java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
-
+  java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
 
 or for a gui interface:
 
-java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
+  java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
 
 At this point we have these essential generated files:
 =====================================================
 
 soc_system.rbf
-
 soc_system.sopcinfo
-
 soc_system/soc_system.html
-
 soc_system/soc_system_generation.rpt
-
 soc_system.rbf
-
 soc_system.dts
-
 
 These files are also generaated:
 
-DE1_SOC_Linux_FB.sld
-
-DE1_SOC_Linux_FB.fit.rpt
-
-DE1_SOC_Linux_FB.fit.summary
-
-DE1_SOC_Linux_FB.fit.smsg
-
-DE1_SOC_Linux_FB.pin
-
-DE1_SOC_Linux_FB.map.rpt
-
-DE1_SOC_Linux_FB.map.summary
-
-DE1_SOC_Linux_FB.map.smsg
-
-c5_pin_model_dump.txt
-
+  DE1_SOC_Linux_FB.sld
+  DE1_SOC_Linux_FB.fit.rpt
+  DE1_SOC_Linux_FB.fit.summary
+  DE1_SOC_Linux_FB.fit.smsg
+  DE1_SOC_Linux_FB.pin
+  DE1_SOC_Linux_FB.map.rpt
+  DE1_SOC_Linux_FB.map.summary
+  DE1_SOC_Linux_FB.map.smsg
+  c5_pin_model_dump.txt
 
 --------------------
 
@@ -213,6 +174,7 @@ the following u-boot command to update the board headers.  Once these headers
 are updated for a given project build, u-boot should be configured for the
 de0-nano-sockit and then build the normal spl build.
 
+
 Update U-boot Headers
 =====================
 
@@ -224,7 +186,26 @@ The script args are essentially <device_family> , <path/to/project/dir> ,
 Example command assuming u-boot and project source dirs are parallel::
 
 $ cd path/to/u-boot
-$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
+$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../DE1_SOC_Linux_FB/ ../DE1_SOC_Linux_FB/build/ board/terasic/de0-nano-soc/qts/
+
+Current deploy sequence
+=======================
+
+Yocto currently builds 2 main rootfs "packages" and the sdcard image (plus kernel,
+.dtb, u-boot).  The tarball, rootfs ext3 image and sdcard image all contain the
+proper kernel modules and boot files, however, u-boot is still plain vanilla (ie,
+it has not yet been updated with the Quartus project headers).  The deployment
+steps must incorporate the firmware blob and custom u-boot:
+
+0) bitbake an image
+1) burn the sdcard image to a test card
+2) mount the /boot partition or the root partition, depending on whether the card
+   was formatted with 2 or 3 partitions; note the raw partition will be either
+   the first (of 2) partitions or the last (of 3)
+3) copy the new .rbf file to the boot partition as ``soc_system.rbf``
+4) update the u-boot build as above and burn the spl file to the raw partition
+5) insert the card, open a serial console, and boot the board
+
 
 U-Boot Notes
 ============
@@ -259,8 +240,20 @@ $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
 $ make ARCH=arm CROSS_COMPILE=${CC}
 $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
-where sdX is your sdcard device.  Now try the qts script and rebuild
-using all 3 make commands.
+where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script
+and rebuild using all 3 make commands.
+
+At this point, u-boot essentially doesn't care what it loads if it has the right name; this
+goes for all of the files - soc_system.rbf, socfpga.dtb, boot.scr, and zImage.  The key is
+matching the right .rbf with the right .dtb file, since there are multiple DT blobs in the
+kernel build but only one (correct) .rbf for each matching .dtb file.  The Yocto kernel
+recipes takes care of this with config options, so it's up to you if you build the kernel
+by hand (or with the kernel builder).  There is no de1_soc device tree file in any upstream
+kernel, so the following patches are added in the Yocto image and kernel builder:
+
+* DE1_SOC_Linux_FB project (ie, this one) uses ``socfpga_cyclone5_de1_soc-fb.dts``
+* DE1-SoC-Sound project uses ``socfpga_cyclone5_de1_soc-audio.dts``
+
 
 Kernel Notes
 ============
@@ -271,8 +264,7 @@ Repo: https://github.com/VCTLabs/linux-socfpga.git
 
 Branches: socfpga-3.18-audio  and  4.4-altera
 
-Recipes for each with patches are in the Yocto build manifest below.
-
+Recipes for each with patches are in the Yocto meta-altera layer below.
 
 
 Yocto Notes
@@ -280,9 +272,13 @@ Yocto Notes
 
 Custom kernel and u-boot patches (board-specific headers not updated)
 
-https://github.com/VCTLabs/meta-altera
+Repo: https://github.com/VCTLabs/meta-altera
 
-https://github.com/VCTLabs/vct-socfpga-bsp-platform
+Branch: jethro_16.1_v2016.03
+
+Repo: https://github.com/VCTLabs/vct-socfpga-bsp-platform
+
+Branch: poky-jethro
 
 The second repo above is the build manifest for a Yocto (Poky) build, which
 includes the meta-altera BSP layer plus more.  See the conf/local sample
@@ -304,9 +300,9 @@ the spl build from `Update U-boot Headers`_ above.
 
 Use the local.conf settings to switch kernels, currently linux-audio-3.18
 and linux-altera-4.4.  Both have slightly different versions of the same
-patches for DTS and wm8731.
-
-The Linux_Audio project modules are packaged for the Yocto build, otherwise
-they need to be built separately (use the Makefile).
+patches for DTS and wm8731 (note linux-altera-4.4 recipe has been updated
+with separate .dts files for the FB and Audio projects with config set for
+FB).  The Linux_Audio project modules are packaged for the Yocto build,
+otherwise they need to be built separately (use the Makefile).
 
 
