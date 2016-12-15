@@ -194,10 +194,7 @@ module DE1_SOC_Linux_FB(
       output      [7:0]  VGA_R,
       output             VGA_SYNC_N,
       output             VGA_VS
-		
-
-		
-		);
+);
 
 
 //=======================================================
@@ -226,7 +223,6 @@ assign   VGA_CLK              =     clk_65;
 assign  {VGA_B,VGA_G,VGA_R}   =     {vid_b,vid_g,vid_r};
 assign   VGA_VS               =     vid_v_sync;
 assign   VGA_HS               =     vid_h_sync;
-
   
 // Debounce logic to clean out glitches within 1ms
 debounce debounce_inst (
@@ -375,7 +371,7 @@ elite_SPI_Slave elite_SPI_Slave_1
 		.USPI_MISO											( GPIO_0[1] ),                         // Input               
 		.USPI_MOSI											( GPIO_0[0] ),                         // Output                
 		.USPI_SCLK											( GPIO_0[3] ),                         // Input                
-		.USPI_CSEL											( GPIO_0[2] ),                     		// Input                
+		.USPI_CSEL											( GPIO_0[2] )                     		// Input                
 		);
 
 
