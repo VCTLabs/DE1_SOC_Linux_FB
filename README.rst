@@ -177,9 +177,8 @@ the following u-boot command to update the board headers.  Once these headers
 are updated for a given project build, u-boot should be configured for the
 de0-nano-sockit and then build the normal spl build.
 
-
-Update U-boot Headers
-=====================
+Build u-boot
+============
 
 With a suitable device tree file, we can skip right to u-boot, where we're using
 the mainline version from the meta-altera jethro branch u-boot (v2016.03-yocto).
@@ -188,9 +187,35 @@ The script args are essentially <device_family> , <path/to/project/dir> ,
 
 Example command assuming u-boot and project source dirs are parallel::
 
-$ cd path/to/u-boot
-$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../DE1_SOC_Linux_FB/ ../DE1_SOC_Linux_FB/build/ board/terasic/de0-nano-soc/qts/
+  $ cd ../u-boot
+  
+  $ git clone https://github.com/VCTLabs/u-boot.git
 
+  $ cd u-boot/
+  $ git checkout v2016.03-yocto
+  $ export CC=arm-linux-gnueabihf-
+  $ make ARCH=arm CROSS_COMPILE=${CC} distclean
+
+  $ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../DE1_SOC_Linux_FB/ ../DE1_SOC_Linux_FB/build/ board/terasic/de0-nano-soc/qts/
+
+  $ export CC=armv7a-hardfloat-linux-gnueabi-
+  
+  $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
+  $ make ARCH=arm CROSS_COMPILE=${CC}
+  
+Initialize sdcard::
+
+  $ sudo fdisk /dev/sdX
+  ...
+  
+Upate u-boot partition::
+ 
+  $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
+
+Add a .dts file::
+
+  $ sudo cp ./arch/arm/dts/socfpga_cyclone5_de0_nano_soc.dts /dev/sdX1
+  
 Current deploy sequence
 =======================
 
@@ -234,14 +259,7 @@ Branch: v2016.03-yocto
 
 ::
 
-$ git clone https://github.com/VCTLabs/u-boot.git
-$ cd u-boot/
-$ git checkout v2016.03-yocto
-$ export CC=armv7a-hardfloat-linux-gnueabi-
 $ make ARCH=arm CROSS_COMPILE=${CC} distclean
-$ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
-$ make ARCH=arm CROSS_COMPILE=${CC}
-$ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
 where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script
 and rebuild using all 3 make commands.
