@@ -32,6 +32,9 @@ stamp/*
 *.pin
 *.sof
 *.rbf
+*.h
+*.dts
+*.dtb
   
 incremental_db/*
 
