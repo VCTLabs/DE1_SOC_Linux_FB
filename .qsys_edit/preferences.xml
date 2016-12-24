@@ -16,6 +16,6 @@
   </columns>
  </clocktable>
  <library expandedCategories="Project,Library" />
- <window width="1600" height="860" x="490" y="712" />
+ <window width="1600" height="860" x="59" y="37" />
  <hdlexample language="VERILOG" />
 </preferences>

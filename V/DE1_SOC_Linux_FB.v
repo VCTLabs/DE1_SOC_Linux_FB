@@ -35,7 +35,7 @@
 
 module DE1_SOC_Linux_FB(
 
-     inout              ADC_CS_N,
+		inout              ADC_CS_N,
       output             ADC_DIN,
       input              ADC_DOUT,
       output             ADC_SCLK,
@@ -157,7 +157,8 @@ module DE1_SOC_Linux_FB(
       input              HPS_USB_DIR,
       input              HPS_USB_NXT,
       output             HPS_USB_STP,
-`endif /*ENABLE_HPS*/
+		input					 HPS_WARM_RST_n,
+		`endif /*ENABLE_HPS*/
 
       ///////// IRDA /////////
       input              IRDA_RXD,
@@ -180,10 +181,10 @@ module DE1_SOC_Linux_FB(
 
       ///////// TD /////////
       input              TD_CLK27,
-      input      [7:0]  TD_DATA,
-      input             TD_HS,
+      input      [7:0]   TD_DATA,
+      input              TD_HS,
       output             TD_RESET_N,
-      input             TD_VS,
+      input              TD_VS,
 
       ///////// VGA /////////
       output      [7:0]  VGA_B,
@@ -205,15 +206,15 @@ wire  [1:0]  fpga_debounced_buttons;
 wire  [3:0]  fpga_led_internal;
 wire         hps_fpga_reset_n;
  
-wire               clk_65;
-wire [7:0]         vid_r,vid_g,vid_b;
-wire               vid_v_sync ;
-wire               vid_h_sync ;
-wire               vid_datavalid;
+wire           clk_65;
+wire [7:0]   	vid_r,vid_g,vid_b;
+wire           vid_v_sync ;
+wire           vid_h_sync ;
+wire           vid_datavalid;
 
 //elite added registers
-reg [7:0]        	elite_SPI_Cmnd_Rcvd_8;
-reg					elite_SPI_Rdy_Flag;
+wire [7:0]     Elite_SPI_Cmnd_Rcvd_8;
+wire				Elite_SPI_Rdy_Flag;
 //=======================================================
 //  Structural coding
 //=======================================================      
@@ -223,6 +224,9 @@ assign   VGA_CLK              =     clk_65;
 assign  {VGA_B,VGA_G,VGA_R}   =     {vid_b,vid_g,vid_r};
 assign   VGA_VS               =     vid_v_sync;
 assign   VGA_HS               =     vid_h_sync;
+
+//assign hps_fpga_reset_n = 1'b0;		// clear the reset line
+
   
 // Debounce logic to clean out glitches within 1ms
 debounce debounce_inst (
@@ -349,10 +353,12 @@ soc_system u0 (
     );
 
 // Runtime display for De1 board
-elite_7Seg 	 elite_7Seg1
+Elite_7Seg 	 elite_7Seg_1
 		(
       .CLOCK_50                               	( CLOCK_50),                          	//          clk.clk			input
       .Reset_7Seg                         		( hps_fpga_reset_n),                   //          reset.reset_n	input
+		.Elite_7Seg_Disp_Word						 	( Elite_SPI_Cmnd_Rcvd_8),					//				display cmnds 	input
+		.Elite_7Seg_Set_Flag								( Elite_SPI_Rdy_Flag),						// 			set flag, 		input
 		.Elite_7Seg_0_Byte								( HEX0 ),										//				7seg 0, 7bit output
 		.Elite_7Seg_1_Byte								( HEX1 ),										//				7seg 0, 7bit output
 		.Elite_7Seg_2_Byte								( HEX2 ),										//				7seg 0, 7bit output
@@ -361,17 +367,16 @@ elite_7Seg 	 elite_7Seg1
 		.Elite_7Seg_5_Byte								( HEX5 )											//				7seg 0, 7bit output
 		);
 	
-// Runtime display for De1 board
-elite_SPI_Slave elite_SPI_Slave_1
+// SPI slave input from HPS, use GPIO pins for connections.
+Elite_SPI_Slave SPI_Slave_1
 		(
 		.MClk													( CLOCK_50 ),                          // Input
 		.USPI_Rst_Flag										( hps_fpga_reset_n ),       				// Input                
-		.USPI_Cmnd1_8										( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
-		.USPI_Ready_Flag									( Elite_SPI_Rdy_Flag ),              	// Output                
+		.USPI_Rcvr											( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
 		.USPI_MISO											( GPIO_0[1] ),                         // Input               
 		.USPI_MOSI											( GPIO_0[0] ),                         // Output                
 		.USPI_SCLK											( GPIO_0[3] ),                         // Input                
-		.USPI_CSEL											( GPIO_0[2] )                     		// Input                
+		.USPI_CSEL											( GPIO_0[2] )                   			// Input                
 		);
 
 

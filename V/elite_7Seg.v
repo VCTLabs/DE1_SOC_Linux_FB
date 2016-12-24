@@ -31,11 +31,13 @@
 ///////////////////////////////////////////////
 // module Elite_7Seg
 ///////////////////////////////////////////////
-module elite_7Seg
+module Elite_7Seg
 	(
    input wire 	CLOCK_50,
 	input wire 	Reset_7Seg,
-	output wire	[6:0]	Elite_7Seg_0_Byte,		// far right of de1 board
+	input wire 	[7:0]	Elite_7Seg_Disp_Word,	// from the SPI bus for right now.
+	input wire 	Elite_7Seg_Set_Flag,
+	output wire	[6:0]	Elite_7Seg_0_Byte,		// far right of de1 board, declare as wire
 	output reg	[6:0]	Elite_7Seg_1_Byte,
 	output reg	[6:0]	Elite_7Seg_2_Byte,
 	output reg	[6:0]	Elite_7Seg_3_Byte,
@@ -75,7 +77,7 @@ module elite_7Seg
 
  
 // Assignments
-assign Elite_7Seg_0_Byte = SevenSeg;	
+assign Elite_7Seg_0_Byte = SevenSeg;	// declare as a wire output so we write to an interim variable 
 
 // BCD is a counter that counts from 0 to 15
 // Counter goes from 00000000 to 99999999, then rolls-over.
