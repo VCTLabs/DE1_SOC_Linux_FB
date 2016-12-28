@@ -82,7 +82,7 @@ module DE1_SOC_Linux_FB(
 
       ///////// GPIO /////////
       inout     [35:0]         GPIO_0,
-      inout     [35:0]         GPIO_1,
+      // inout     [35:0]         GPIO_1,
  
 
       ///////// HEX0 /////////

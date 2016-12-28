@@ -354,27 +354,27 @@
   <parameter name="FIELD0_V_FRONT_PORCH" value="0" />
   <parameter name="FIELD0_V_RISING_EDGE" value="0" />
   <parameter name="FIELD0_V_SYNC_LENGTH" value="0" />
-  <parameter name="FIFO_DEPTH" value="1920" />
+  <parameter name="FIFO_DEPTH" value="480" />
   <parameter name="F_FALLING_EDGE" value="0" />
   <parameter name="F_RISING_EDGE" value="0" />
   <parameter name="GENERATE_SYNC" value="0" />
-  <parameter name="H_ACTIVE_PIXELS" value="1024" />
-  <parameter name="H_BACK_PORCH" value="160" />
+  <parameter name="H_ACTIVE_PIXELS" value="480" />
+  <parameter name="H_BACK_PORCH" value="43" />
   <parameter name="H_BLANK" value="0" />
-  <parameter name="H_FRONT_PORCH" value="24" />
-  <parameter name="H_SYNC_LENGTH" value="136" />
+  <parameter name="H_FRONT_PORCH" value="8" />
+  <parameter name="H_SYNC_LENGTH" value="531" />
   <parameter name="INTERLACED" value="0" />
   <parameter name="NO_OF_MODES" value="1" />
   <parameter name="NUMBER_OF_COLOUR_PLANES" value="4" />
   <parameter name="STD_WIDTH" value="1" />
-  <parameter name="THRESHOLD" value="1919" />
+  <parameter name="THRESHOLD" value="479" />
   <parameter name="USE_CONTROL" value="0" />
   <parameter name="USE_EMBEDDED_SYNCS" value="0" />
-  <parameter name="V_ACTIVE_LINES" value="768" />
-  <parameter name="V_BACK_PORCH" value="29" />
+  <parameter name="V_ACTIVE_LINES" value="272" />
+  <parameter name="V_BACK_PORCH" value="12" />
   <parameter name="V_BLANK" value="0" />
-  <parameter name="V_FRONT_PORCH" value="3" />
-  <parameter name="V_SYNC_LENGTH" value="6" />
+  <parameter name="V_FRONT_PORCH" value="4" />
+  <parameter name="V_SYNC_LENGTH" value="288" />
  </module>
  <module name="alt_vip_vfr_vga" kind="alt_vip_vfr" version="14.0" enabled="1">
   <parameter name="AUTO_CLOCK_MASTER_CLOCK_RATE" value="50000000" />
@@ -382,8 +382,8 @@
   <parameter name="BITS_PER_PIXEL_PER_COLOR_PLANE" value="8" />
   <parameter name="CLOCKS_ARE_SEPARATE" value="1" />
   <parameter name="FAMILY" value="Cyclone V" />
-  <parameter name="MAX_IMAGE_HEIGHT" value="768" />
-  <parameter name="MAX_IMAGE_WIDTH" value="1024" />
+  <parameter name="MAX_IMAGE_HEIGHT" value="272" />
+  <parameter name="MAX_IMAGE_WIDTH" value="480" />
   <parameter name="MEM_PORT_WIDTH" value="128" />
   <parameter name="NUMBER_OF_CHANNELS_IN_PARALLEL" value="4" />
   <parameter name="NUMBER_OF_CHANNELS_IN_SEQUENCE" value="1" />
