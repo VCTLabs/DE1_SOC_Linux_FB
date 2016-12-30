@@ -667,7 +667,7 @@ set_location_assignment PIN_AK23 -to VGA_B[3]
 set_location_assignment PIN_AH23 -to VGA_B[4]
 set_location_assignment PIN_AK22 -to VGA_B[5]
 set_location_assignment PIN_AJ22 -to VGA_B[6]
-set_location_assignment PIN_AH22 -to VGA_B[7] # GPIO-1-33
+set_location_assignment PIN_AH22 -to VGA_B[7]
 
 set_location_assignment PIN_AH24 -to VGA_G[0]
 set_location_assignment PIN_AH27 -to VGA_G[1]
@@ -687,7 +687,7 @@ set_location_assignment PIN_AF26 -to VGA_R[5]
 set_location_assignment PIN_AG25 -to VGA_R[6]
 set_location_assignment PIN_AG26 -to VGA_R[7]
 
-set_location_assignment PIN_AA21 -to VGA_CLK # GPIO-1-2
+set_location_assignment PIN_AA21 -to VGA_CLK
 
 # AF23 GPIO-1-36
 set_location_assignment PIN_AF23 -to VGA_VS

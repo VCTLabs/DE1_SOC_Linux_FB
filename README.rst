@@ -86,6 +86,7 @@ Will update several files and directories including::
 
   DE1_SOC_Linux_FB.qsf
   soc_system.qsys
+  soc_system/synthesis/soc_system.v
 
 Output files::
 	
