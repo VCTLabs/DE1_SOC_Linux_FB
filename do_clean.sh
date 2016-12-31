@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 # deep clean
 #
@@ -16,7 +16,9 @@ rm   soc_system.sopcinfo
 rm   soc_system/*.rpt
 rm   soc_system/*.html
 rm   soc_system/*.debuginfo
-rm   soc_system/synthesis/*.debuginfo
-rm   soc_system/synthesis/*.gip
-rm   soc_system/synthesis/*.svp
+rm   soc_system/*.bsf
+rm   soc_system/synthesis/*
+#
+rm   soc_system/soc_system_inst.v
+rm   soc_system/soc_system_inst.vhd
 

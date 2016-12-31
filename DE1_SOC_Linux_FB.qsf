@@ -2,7 +2,6 @@
 # Build by Terasic V1.0.0
 #============================================================
 
-
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY "DE1_SOC_Linux_FB"
@@ -142,6 +141,40 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_0[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_0[7]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_0[8]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_0[9]
+
+#============================================================
+# MTL2 on GPIO_1
+#============================================================
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_R[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_G[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_B[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_DCLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_VSD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_HSD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_TOUCH_I2C_SCL
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_TOUCH_I2C_SDA
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MTL2_TOUCH_INT_n
 
 #============================================================
 # HEX0
@@ -627,7 +660,9 @@ set_location_assignment PIN_A5 -to TD_HS
 set_location_assignment PIN_F6 -to TD_RESET_N
 set_location_assignment PIN_A3 -to TD_VS
 
+# ========================================================
 # Was VGA connections to VGA DAC
+# ========================================================
 #set_location_assignment PIN_B13 -to VGA_B[0]
 #set_location_assignment PIN_G13 -to VGA_B[1]
 #set_location_assignment PIN_H13 -to VGA_B[2]
@@ -658,46 +693,142 @@ set_location_assignment PIN_A3 -to TD_VS
 #set_location_assignment PIN_C10 -to VGA_SYNC_N
 #set_location_assignment PIN_D11 -to VGA_VS
 
-### For test send these to GPIO-1
+# ========================================================
+# For test send these to JP2 GPIO_1
+# ========================================================
 
-set_location_assignment PIN_AJ25 -to VGA_B[0]
-set_location_assignment PIN_AK24 -to VGA_B[1]
-set_location_assignment PIN_AG23 -to VGA_B[2]
-set_location_assignment PIN_AK23 -to VGA_B[3]
-set_location_assignment PIN_AH23 -to VGA_B[4]
-set_location_assignment PIN_AK22 -to VGA_B[5]
-set_location_assignment PIN_AJ22 -to VGA_B[6]
-set_location_assignment PIN_AH22 -to VGA_B[7]
+# PIN Assignments defined by hardware:
+# JP2 GPIO_1 GND    pin 12, 30
+# JP2 GPIO_1 VCC3P3 pin 29
 
-set_location_assignment PIN_AH24 -to VGA_G[0]
-set_location_assignment PIN_AH27 -to VGA_G[1]
-set_location_assignment PIN_AJ27 -to VGA_G[2]
-set_location_assignment PIN_AK29 -to VGA_G[3]
-set_location_assignment PIN_AK28 -to VGA_G[4]
-set_location_assignment PIN_AK26 -to VGA_G[5]
-set_location_assignment PIN_AH25 -to VGA_G[6]
-set_location_assignment PIN_AJ24 -to VGA_G[7]
+# Unassigned:
+# JP2 GPIO_1_D0  pin 1  AB17 
+# JP2 GPIO_1_D16 pin 19 AK27
+# JP2 GPIO_1_D17 pin 20 AJ26
+# JP2 GPIO_1_D29 pin 34 AG22
+# JP2 GPIO_1_D2  pin 3  AB21
+# JP2 GPIO_1_D35 pin 40 AC22 
+# JP2 GPIO_1_D9  pin 10 AG25
 
-set_location_assignment PIN_AC23 -to VGA_R[0]
-set_location_assignment PIN_AD24 -to VGA_R[1]
-set_location_assignment PIN_AE23 -to VGA_R[2]
-set_location_assignment PIN_AE24 -to VGA_R[3]
-set_location_assignment PIN_AF25 -to VGA_R[4]
-set_location_assignment PIN_AF26 -to VGA_R[5]
-set_location_assignment PIN_AG25 -to VGA_R[6]
-set_location_assignment PIN_AG26 -to VGA_R[7]
+# Future
+# JP2 GPIO_1_D32 pin 37 AE22 MTL2_TOUCH_I2C_SCL
+# JP2 GPIO_1_D33 pin 38 AD21 MTL2_TOUCH_I2C_SDA
+# JP2 GPIO_1_D34 pin 39 AA20 MTL2_TOUCH_INT_n
 
+# Assigned:
+
+# JP2 GPIO_1_D1 pin 2 AA21 
 set_location_assignment PIN_AA21 -to VGA_CLK
 
-# AF23 GPIO-1-36
-set_location_assignment PIN_AF23 -to VGA_VS
-#set_location_assignment PIN_AF23 -to VGA_SYNC_N
+# JP2 GPIO_1_D20 pin AJ25 
+set_location_assignment PIN_AJ25 -to VGA_B[0]
 
-# AF24 GPIO-1-35
+# JP2 GPIO_1_D22 pin  AK24
+set_location_assignment PIN_AK24 -to VGA_B[1]
+
+# JP2 GPIO_1_D23 pin AG23  
+set_location_assignment PIN_AG23 -to VGA_B[2]
+
+# JP2 GPIO_1_D24 pin AK23 
+set_location_assignment PIN_AK23 -to VGA_B[3]
+
+# JP2 GPIO_1_D25 pin  AH23
+set_location_assignment PIN_AH23 -to VGA_B[4]
+
+# JP2 GPIO_1_D26 pin  AK22
+set_location_assignment PIN_AK22 -to VGA_B[5]
+
+# JP2 GPIO_1_D27 pin AJ22  
+set_location_assignment PIN_AJ22 -to VGA_B[6]
+
+# JP2 GPIO_1_D28 pin AH22 
+set_location_assignment PIN_AH22 -to VGA_B[7]
+
+# JP2 GPIO_1_D11 pin AH24
+set_location_assignment PIN_AH24 -to VGA_G[0]
+
+# JP2 GPIO_1_D12 pin  AH27
+set_location_assignment PIN_AH27 -to VGA_G[1]
+
+# JP2 GPIO_1_D13 pin  AJ27
+set_location_assignment PIN_AJ27 -to VGA_G[2]
+
+# JP2 GPIO_1_D14 pin  AK29
+set_location_assignment PIN_AK29 -to VGA_G[3]
+
+# JP2 GPIO_1_D15 pin  AK28
+set_location_assignment PIN_AK28 -to VGA_G[4]
+
+# JP2 GPIO_1_D18 pin  AK26
+set_location_assignment PIN_AK26 -to VGA_G[5]
+
+# JP2 GPIO_1_D19 pin  AH25
+set_location_assignment PIN_AH25 -to VGA_G[6]
+
+# JP2 GPIO_1_D21 pin  AJ24
+set_location_assignment PIN_AJ24 -to VGA_G[7]
+
+# JP2 GPIO_1_D3 pin  AC23
+set_location_assignment PIN_AC23 -to VGA_R[0]
+
+# JP2 GPIO_1_D4 pin  AD24
+set_location_assignment PIN_AD24 -to VGA_R[1]
+
+# JP2 GPIO_1_D5 pin  AE23
+set_location_assignment PIN_AE23 -to VGA_R[2]
+
+# JP2 GPIO_1_D6 pin  AE24
+set_location_assignment PIN_AE24 -to VGA_R[3]
+
+# JP2 GPIO_1_D7 pin  AF25
+set_location_assignment PIN_AF25 -to VGA_R[4]
+
+# JP2 GPIO_1_D8 pin  AF26
+set_location_assignment PIN_AF26 -to VGA_R[5]
+
+# JP2 GPIO_1_D9 pin  AG25
+set_location_assignment PIN_AG25 -to VGA_R[6]
+
+# JP2 GPIO_1_D10 pin  AG26
+set_location_assignment PIN_AG26 -to VGA_R[7]
+
+# JP2 GPIO_1_D30 pin 35 AF24
 set_location_assignment PIN_AF24 -to VGA_HS
 
-### set_location_assignment PIN_ -to VGA_BLANK_N
+# JP2 GPIO-1_D31 pin 36 AF23
+set_location_assignment PIN_AF23 -to VGA_VS
 
+# ========================================================
+# Connections to MTL2 LCD on GPIO_1
+# ========================================================
+#set_location_assignment PIN_AA21 -to MTL2_DCLK
+#set_location_assignment PIN_AC23 -to MTL2_R[0]
+#set_location_assignment PIN_AD24 -to MTL2_R[1]
+#set_location_assignment PIN_AE23 -to MTL2_R[2]
+#set_location_assignment PIN_AE24 -to MTL2_R[3]
+#set_location_assignment PIN_AF25 -to MTL2_R[4]
+#set_location_assignment PIN_AF26 -to MTL2_R[5]
+#set_location_assignment PIN_AG25 -to MTL2_R[6]
+#set_location_assignment PIN_AG26 -to MTL2_R[7]
+#set_location_assignment PIN_AH24 -to MTL2_G[0]
+#set_location_assignment PIN_AH27 -to MTL2_G[1]
+#set_location_assignment PIN_AJ27 -to MTL2_G[2]
+#set_location_assignment PIN_AK29 -to MTL2_G[3]
+#set_location_assignment PIN_AK28 -to MTL2_G[4]
+#set_location_assignment PIN_AK26 -to MTL2_G[5]
+#set_location_assignment PIN_AH25 -to MTL2_G[6]
+#set_location_assignment PIN_AJ25 -to MTL2_B[0]
+#set_location_assignment PIN_AJ24 -to MTL2_G[7]
+#set_location_assignment PIN_AK24 -to MTL2_B[1]
+#set_location_assignment PIN_AG23 -to MTL2_B[2]
+#set_location_assignment PIN_AK23 -to MTL2_B[3]
+#set_location_assignment PIN_AH23 -to MTL2_B[4]
+#set_location_assignment PIN_AK22 -to MTL2_B[5]
+#set_location_assignment PIN_AJ22 -to MTL2_B[6]
+#set_location_assignment PIN_AH22 -to MTL2_B[7]
+#set_location_assignment PIN_AF24 -to MTL2_HSD
+#set_location_assignment PIN_AF23 -to MTL2_VSD
+#set_location_assignment PIN_AE22 -to MTL2_TOUCH_I2C_SCL
 
 ##################################
 
