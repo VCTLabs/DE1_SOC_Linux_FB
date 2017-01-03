@@ -49,16 +49,14 @@ module DE1_SOC_Linux_FB(
       inout              AUD_DACLRCK,
       output             AUD_XCK,
 
+		//////////// I2C for Audio and Video-In //////////
+      output             FPGA_I2C_SCLK,
+      inout              FPGA_I2C_SDAT,
+
       ///////// CLOCK2 /////////
       input              CLOCK2_50,
-
-      ///////// CLOCK3 /////////
       input              CLOCK3_50,
-
-      ///////// CLOCK4 /////////
       input              CLOCK4_50,
-
-      ///////// CLOCK /////////
       input              CLOCK_50,
 
       ///////// DRAM /////////
@@ -74,33 +72,53 @@ module DE1_SOC_Linux_FB(
       output             DRAM_UDQM,
       output             DRAM_WE_N,
 
-      ///////// FAN /////////
-      output             FAN_CTRL,
+		//////////// VGA //////////
+      //output                                  VGA_BLANK_N,
+      output               [7:0]              VGA_B,
+      output                                  VGA_CLK,
+      output               [7:0]              VGA_G,
+      output                                  VGA_HS,
+      output               [7:0]              VGA_R,
+      //output                                  VGA_SYNC_N,
+      output                                  VGA_VS,
 
-      ///////// FPGA /////////
-      output             FPGA_I2C_SCLK,
-      inout              FPGA_I2C_SDAT,
 
       ///////// GPIO /////////
-      inout     [35:0]   GPIO_0,
-		
+//      inout     [35:0]   GPIO_0,
+
+      ////////////  GPIO_0 or GPIO_1 headers Connect to MTL2 ////////
+      output               [7:0]              MTL_B,
+      output                                  MTL_DCLK,
+      output               [7:0]              MTL_G,
+      output                                  MTL_HSD,
+      output               [7:0]              MTL_R,
+
+//      output                                  MTL_TOUCH_I2C_SCL,
+//      inout                                   MTL_TOUCH_I2C_SDA,
+//      input                                   MTL_TOUCH_INT_n,
+//      output                                  MTL_VSD,
+	
       ///////// HEX0 /////////
       output      [6:0]  HEX0,
-
-      ///////// HEX1 /////////
       output      [6:0]  HEX1,
-
-      ///////// HEX2 /////////
       output      [6:0]  HEX2,
-
-      ///////// HEX3 /////////
       output      [6:0]  HEX3,
-
-      ///////// HEX4 /////////
       output      [6:0]  HEX4,
-
-      ///////// HEX5 /////////
       output      [6:0]  HEX5,
+		
+      ///////// KEY /////////
+      input       [3:0]  KEY,
+
+      ///////// LEDR /////////
+      output      [9:0]  LEDR,
+
+      ///////// SW /////////
+      input       [9:0]  SW,
+
+       output         spi_csn,             //3.3V    //Slave Sel 0 - LTC Analog
+       input          spi_miso,            //3.3V    //Master Input
+       output         spi_mosi,            //3.3V    //Master Output 
+       output         spi_sck,             //3.3V    //Clock Output 
 
 `ifdef ENABLE_HPS
       ///////// HPS /////////
@@ -158,32 +176,6 @@ module DE1_SOC_Linux_FB(
       output             HPS_USB_STP,
 `endif /*ENABLE_HPS*/
 
-      ///////// IRDA /////////
-      input              IRDA_RXD,
-      output             IRDA_TXD,
-
-      ///////// KEY /////////
-      input       [3:0]  KEY,
-
-      ///////// LEDR /////////
-      output      [9:0]  LEDR,
-
-      ///////// PS2 /////////
-      inout              PS2_CLK,
-      inout              PS2_CLK2,
-      inout              PS2_DAT,
-      inout              PS2_DAT2,
-
-      ///////// SW /////////
-      input       [9:0]  SW,
-
-      ///////// TD /////////
-      input              TD_CLK27,
-      input      [7:0]   TD_DATA,
-      input              TD_HS,
-      output             TD_RESET_N,
-      input              TD_VS,
-
 `ifdef ENABLE_USB
       ///////// USB /////////
       input              USB_B2_CLK,
@@ -198,27 +190,12 @@ module DE1_SOC_Linux_FB(
       input              USB_WR_N,
 `endif /*ENABLE_USB*/
 
-      ///////// VGA /////////
-      output      [7:0]  VGA_B,
-      output             VGA_BLANK_N,
-      output             VGA_CLK,
-      output      [7:0]  VGA_G,
-      output             VGA_HS,
-      output      [7:0]  VGA_R,
-      output             VGA_SYNC_N,
-      output             VGA_VS
-
-	//////////// GPIO, GPIO1 connect to MTL2 - Multi-Touch LCD Panel //////////		
-//      output		[7:0]  MTL2_B,
-//      output		       MTL2_DCLK,
-//      output		[7:0]  MTL2_G,
-//      output		       MTL2_HSD,
-//      output		[7:0]  MTL2_R,
-//      output		       MTL2_TOUCH_I2C_SCL,
-//      inout 		       MTL2_TOUCH_I2C_SDA,
-//      input 		       MTL2_TOUCH_INT_n,
-//      output		       MTL2_VSD
-
+      ///////// TD /////////
+      input              TD_CLK27,
+      input      [7:0]   TD_DATA,
+      input              TD_HS,
+      output             TD_RESET_N,
+      input              TD_VS
 );
 
 
@@ -230,21 +207,27 @@ wire  [1:0]  fpga_debounced_buttons;
 wire  [3:0]  fpga_led_internal;
 wire         hps_fpga_reset_n;
  
-wire               clk_65;
-wire [7:0]         vid_r,vid_g,vid_b;
-wire               vid_v_sync ;
-wire               vid_h_sync ;
-wire               vid_datavalid;
+wire         clk_65;
+wire [7:0]   vid_r,vid_g,vid_b;
+wire         vid_v_sync ;
+wire         vid_h_sync ;
+wire         vid_datavalid;
 
 //=======================================================
 //  Structural coding
 //=======================================================      
-assign   VGA_BLANK_N          =     1'b1;
-assign   VGA_SYNC_N           =     1'b0;	
-assign   VGA_CLK              =     clk_65;
-assign  {VGA_B,VGA_G,VGA_R}   =     {vid_b,vid_g,vid_r};
-assign   VGA_VS               =     ~vid_v_sync;
-assign   VGA_HS               =     ~vid_h_sync;
+//assign   VGA_BLANK_N          =     1'b1;
+//assign   VGA_SYNC_N           =     1'b0;	
+
+assign   VGA_CLK                =     clk_65;
+assign  {VGA_B,VGA_G,VGA_R}     =     {vid_b,vid_g,vid_r};
+assign   VGA_VS                 =     vid_v_sync;
+assign   VGA_HS                 =     vid_h_sync;
+
+assign	MTL2_DCLK              =     clk_65;
+assign  {MTL2_B,MTL2_G,MTL2_R}  =     {vid_b,vid_g,vid_r};
+assign	MTL2_VSD               =     ~vid_v_sync;
+assign   MTL2_HSD               =     ~vid_h_sync;
   
 // Debounce logic to clean out glitches within 1ms
 debounce debounce_inst (
