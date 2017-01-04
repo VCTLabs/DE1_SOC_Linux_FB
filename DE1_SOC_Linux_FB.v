@@ -28,10 +28,8 @@
 //                     email: support@terasic.com
 //
 // ============================================================================
-//Date:  Mon Jun 17 20:35:29 2013
+// Date:  TUE JAN 3, 2017
 // ============================================================================
-
-`define ENABLE_HPS
 
 module DE1_SOC_Linux_FB(
 
@@ -49,7 +47,7 @@ module DE1_SOC_Linux_FB(
       inout              AUD_DACLRCK,
       output             AUD_XCK,
 
-		//////////// I2C for Audio and Video-In //////////
+      //////////// I2C for Audio and Video-In //////////
       output             FPGA_I2C_SCLK,
       inout              FPGA_I2C_SDAT,
 
@@ -72,33 +70,38 @@ module DE1_SOC_Linux_FB(
       output             DRAM_UDQM,
       output             DRAM_WE_N,
 
-		//////////// VGA //////////
-      //output                                  VGA_BLANK_N,
+      //////////// VGA //////////
+      output                                  VGA_BLANK_N,
       output               [7:0]              VGA_B,
       output                                  VGA_CLK,
       output               [7:0]              VGA_G,
       output                                  VGA_HS,
       output               [7:0]              VGA_R,
-      //output                                  VGA_SYNC_N,
+      output                                  VGA_SYNC_N,
       output                                  VGA_VS,
 
-
       ///////// GPIO /////////
-//      inout     [35:0]   GPIO_0,
+      inout     [0]    GPIO_0,
+      inout     [16]   GPIO_0,
+      inout     [17]   GPIO_0,
+      inout     [29]   GPIO_0,
+      inout     [2]    GPIO_0,
+      inout     [35]   GPIO_0,
+      inout     [9]    GPIO_0,
 
-      ////////////  GPIO_0 or GPIO_1 headers Connect to MTL2 ////////
+      ////////////  GPIO_0 and/or GPIO_1 connect to MTL2 ////////
       output               [7:0]              MTL_B,
       output                                  MTL_DCLK,
       output               [7:0]              MTL_G,
       output                                  MTL_HSD,
       output               [7:0]              MTL_R,
 
-//      output                                  MTL_TOUCH_I2C_SCL,
-//      inout                                   MTL_TOUCH_I2C_SDA,
-//      input                                   MTL_TOUCH_INT_n,
-//      output                                  MTL_VSD,
+      output                                  MTL_TOUCH_I2C_SCL,
+      inout                                   MTL_TOUCH_I2C_SDA,
+      input                                   MTL_TOUCH_INT_n,
+      output                                  MTL_VSD,
 	
-      ///////// HEX0 /////////
+      ///////// HEX DISPLAY /////////
       output      [6:0]  HEX0,
       output      [6:0]  HEX1,
       output      [6:0]  HEX2,
@@ -115,14 +118,22 @@ module DE1_SOC_Linux_FB(
       ///////// SW /////////
       input       [9:0]  SW,
 
-       output         spi_csn,             //3.3V    //Slave Sel 0 - LTC Analog
-       input          spi_miso,            //3.3V    //Master Input
-       output         spi_mosi,            //3.3V    //Master Output 
-       output         spi_sck,             //3.3V    //Clock Output 
+      ///////// SPI ////////
+      output             spi_csn,             //3.3V    //Slave Sel 0 - LTC Analog
+      input              spi_miso,            //3.3V    //Master Input
+      output             spi_mosi,            //3.3V    //Master Output 
+      output             spi_sck,             //3.3V    //Clock Output 
 
-`ifdef ENABLE_HPS
+      ///////// TD /////////
+      input              TD_CLK27,
+      input       [7:0]  TD_DATA,
+      input              TD_HS,
+      output             TD_RESET_N,
+      input              TD_VS
+
       ///////// HPS /////////
       inout              HPS_CONV_USB_N,
+
       output      [14:0] HPS_DDR3_ADDR,
       output      [2:0]  HPS_DDR3_BA,
       output             HPS_DDR3_CAS_N,
@@ -139,6 +150,7 @@ module DE1_SOC_Linux_FB(
       output             HPS_DDR3_RESET_N,
       input              HPS_DDR3_RZQ,
       output             HPS_DDR3_WE_N,
+
       output             HPS_ENET_GTX_CLK,
       inout              HPS_ENET_INT_N,
       output             HPS_ENET_MDC,
@@ -148,33 +160,41 @@ module DE1_SOC_Linux_FB(
       input              HPS_ENET_RX_DV,
       output      [3:0]  HPS_ENET_TX_DATA,
       output             HPS_ENET_TX_EN,
+
       inout       [3:0]  HPS_FLASH_DATA,
       output             HPS_FLASH_DCLK,
       output             HPS_FLASH_NCSO,
+
       inout              HPS_GSENSOR_INT,
       inout              HPS_I2C1_SCLK,
       inout              HPS_I2C1_SDAT,
       inout              HPS_I2C2_SCLK,
       inout              HPS_I2C2_SDAT,
       inout              HPS_I2C_CONTROL,
+
       inout              HPS_KEY,
+
       inout              HPS_LED,
+
       inout              HPS_LTC_GPIO,
+
       output             HPS_SD_CLK,
       inout              HPS_SD_CMD,
       inout       [3:0]  HPS_SD_DATA,
+
       output             HPS_SPIM_CLK,
       input              HPS_SPIM_MISO,
       output             HPS_SPIM_MOSI,
       inout              HPS_SPIM_SS,
+
       input              HPS_UART_RX,
       output             HPS_UART_TX,
+
       input              HPS_USB_CLKOUT,
       inout       [7:0]  HPS_USB_DATA,
       input              HPS_USB_DIR,
       input              HPS_USB_NXT,
       output             HPS_USB_STP,
-`endif /*ENABLE_HPS*/
 
 `ifdef ENABLE_USB
       ///////// USB /////////
@@ -189,13 +209,6 @@ module DE1_SOC_Linux_FB(
       inout              USB_SDA,
       input              USB_WR_N,
 `endif /*ENABLE_USB*/
-
-      ///////// TD /////////
-      input              TD_CLK27,
-      input      [7:0]   TD_DATA,
-      input              TD_HS,
-      output             TD_RESET_N,
-      input              TD_VS
 );
 
 
