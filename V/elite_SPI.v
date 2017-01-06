@@ -23,11 +23,15 @@ module Elite_SPI_Slave
    input          MClk, 									// master clock 20ns (50MHz)
    input          USPI_Rst_Flag,        	        	// master signal for POR    
    input          USPI_SCLK, 								// has to be slower than MClk. Provided by PC	
+   input          USPI_CSEL, 								// Active low, controlled by PC, not us, so monitor closely
    input          USPI_MOSI, 								// The output from the HPS to the FPGA
    output         USPI_MISO, 								// The output from the FPGA to the HPS
-   input          USPI_CSEL, 								// Active low, controlled by PC, not us, so monitor closely
    output  [7:0]  USPI_Rcvr,                       // The incoming SPI line as we get a byte (might need a flag w/this) 
-   output  [7:0]  USPI_Txmr                        // The outgoing SPI line as we clock out a byte (might need a flag w/this, too)
+   output  [7:0]  USPI_Txmr,                       // The outgoing SPI line as we clock out a byte (might need a flag w/this, too)
+	output 			USPI_MOSI_DUP,									// wrap around outputs for monitoring on the logic analyzer              
+	output			USPI_MISO_DUP,									// wrap around outputs for monitoring on the logic analyzer           
+	output			USPI_SCLK_DUP,                         // wrap around outputs for monitoring on the logic analyzer  
+	output 			USPI_CSEL_DUP                  			// wrap around outputs for monitoring on the logic analyzer                
 	);
    
 
@@ -35,6 +39,13 @@ module Elite_SPI_Slave
 assign USPI_MISO = Byte_data_sent[7];  // send MSB first to the MISO pin
 assign USPI_Rcvr = Rcv_Data;
 assign USPI_Txmr = FIFO_Dequeue_Byte;
+
+//**** Wrap outputs around to header 2
+assign USPI_MOSI_DUP = MOSIr[1];					// use second register bit for alignment w/other bidir input signals
+assign USPI_MISO_DUP = Byte_data_sent[7];		// use same register output bit as the MISO pin.
+assign USPI_SCLK_DUP = SCLKr[1];					// use second register bit for alignment w/other bidir input signals
+assign USPI_CSEL_DUP = CSELr[1];					// use second register bit for alignment w/other bidir input signals
+
 
 //***** Internal Net Definitions ***************************************************************************************
 reg [7:0] Rcv_Data = 0;        	               

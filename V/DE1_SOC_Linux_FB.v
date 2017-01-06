@@ -372,11 +372,16 @@ Elite_SPI_Slave SPI_Slave_1
 		(
 		.MClk													( CLOCK_50 ),                          // Input
 		.USPI_Rst_Flag										( hps_fpga_reset_n ),       				// Input                
-		.USPI_Rcvr											( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
-		.USPI_MISO											( GPIO_0[1] ),                         // Input               
-		.USPI_MOSI											( GPIO_0[0] ),                         // Output                
 		.USPI_SCLK											( GPIO_0[3] ),                         // Input                
-		.USPI_CSEL											( GPIO_0[2] )                   			// Input                
+		.USPI_CSEL											( GPIO_0[2] ),                  			// Input                
+		.USPI_MOSI											( GPIO_0[1] ),                         // Input                
+		.USPI_MISO											( GPIO_0[0] ),                         // Output               
+		.USPI_Rcvr											( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
+		//.USPI_Txmr
+		.USPI_SCLK_DUP										( GPIO_1[3] ),                         // Output (duplicate)                
+		.USPI_CSEL_DUP										( GPIO_1[2] ),                  			// Output  (duplicate)              
+		.USPI_MOSI_DUP										( GPIO_1[1] ),                         // Output (duplicate)                
+		.USPI_MISO_DUP										( GPIO_1[0] )                          // Output (duplicate)              
 		);
 
 
