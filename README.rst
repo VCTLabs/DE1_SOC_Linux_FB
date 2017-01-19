@@ -23,46 +23,83 @@ Add this to your ~/.bashrc file::
 
   export ALTERA_PATH=$HOME/intelFPGA/16.1
   export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+
   export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
+
   export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
-  export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
+  export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR_OVERRIDE
+
   export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
+
   export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
   export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
   . $SOCEDS_DEST_ROOT/env.sh
   export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
-When a new shell is opened the path is setup. It depends on the environment.
+There is a slight difference in QUARTUS_ROOT_DIR in the lite addition::
 
-For 64b Ubuntu 16.04 with user testy it sets these exports::
+  QUARTUS_ROOT_DIR=$ALTERA_LITE_PATH/quartus
 
-  /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
-  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
-  /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
-  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
-  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
-  /home/testy/intelFPGA/16.1/embedded/ds-5/bin
-  /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
-  /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
-  /home/testy/intelFPGA_lite/16.1/nios2eds/bin
-  /home/testy/intelFPGA_lite/16.1/quartus/bin
-  /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+And these additonal optional items::
 
+  $ALTERA_LITE_PATH/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+  $ALTERA_LITE_PATH/nios2eds/sdk2/bin
+  $ALTERA_LITE_PATH/nios2eds/bin
+
+Rather than::
+
+  QUARTUS_ROOT_DIR=ALTERA_PATH/qprogrammer
+
+In either case you may want to setup the path to the BSP editor::
+
+  export BSP_EDITOR_BINDIR=$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
 Project Update/Build Process
 ============================
 
-Upgrade project IP cores, re-generate the Verilog or VHDL code (using Qsys) then rebuild
-with Quartus tools::
+Update Process
+==============
+
+Design files and directories::
+
+	DE1_SOC_Linux_FB.qpf
+	DE1_SOC_Linux_FB.sdc
+	DE1_SOC_Linux_FB.v
+	DE1_SOC_Linux_FB.qsf
+	soc_system.qsys
+	ip/
+	vga_pll.*
+	vga_pll/
+
+Upgrade project IP cores::
 
 $ qsys-generate soc_system.qsys --upgrade-ip-cores
+
+Will update::
+
+  soc_system.qsys
+
+Regenerate the VERILOG using QSYS::
+
 $ qsys-generate soc_system.qsys --synthesis=VERILOG
+
+Will update several files and directories including::
+
+  DE1_SOC_Linux_FB.qsf
+  soc_system.qsys
+  soc_system/synthesis/soc_system.v
+
+Output files::
+	
+  hps_sdram_p0_summary.csv
+  soc_system.sopcinfo
+  soc_system/
+  soc_system_generation.rpt
+  soc_system.xml
+  soc_system.html
+
+These will actually build the system::
+
 $ quartus_map  DE1_SOC_Linux_FB
 $ quartus_fit  DE1_SOC_Linux_FB
 $ quartus_asm  DE1_SOC_Linux_FB
@@ -75,6 +112,67 @@ $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
    then ``make sof``.  Do not run ``make scrub_clean`` since
    it will remove important bits required by the project.
 
+..note2:
+
+A script is included that will the remove most of the generated files::
+
+  do_clean.sh
+
+If you want to experiment with building the .dts files and headers.
+Currently this does NOT work apprpriately for 16.x and current kernels.
+
+These are useful guides::
+
+  https://www.altera.com/content/dam/altera-www/global/en_US/pdfs/literature/ug/ug_soc_eds.pdf
+  https://rocketboards.org/foswiki/view/Documentation/DeviceTreeGenerator
+  https://rocketboards.org/foswiki/view/Documentation/GSRDV151DeviceTreeGenerator
+
+To create the dts file you will need the sopc2dts utility. You can create it::
+
+  cd .. git clone https://github.com/wgoossens/sopc2dts
+  cd sopc2dts
+  make
+
+You invoke it this way::
+
+  java -jar sopc2dts/sopc2dts.jar -i soc_system.sopcinfo -o soc_system.dts
+
+or for a gui interface::
+
+  java -jar sopc2dts/sopc2dts.jar --gui -i soc_system.sopcinfo
+
+-- note 3:
+
+Presuming the sopc2dts tree is at the same level as this tree you can use
+this script to blindly do the quartus build:
+
+  do_quartus.sh
+
+Essential files
+===============
+
+At this point we have these essential generated files::
+
+  soc_system.rbf
+  soc_system.sopcinfo
+  soc_system/soc_system.html
+  soc_system/soc_system_generation.rpt
+  soc_system.rbf
+  soc_system.dts
+
+These files are also generaated::
+
+  DE1_SOC_Linux_FB.sld
+  DE1_SOC_Linux_FB.fit.rpt
+  DE1_SOC_Linux_FB.fit.summary
+  DE1_SOC_Linux_FB.fit.smsg
+  DE1_SOC_Linux_FB.pin
+  DE1_SOC_Linux_FB.map.rpt
+  DE1_SOC_Linux_FB.map.summary
+  DE1_SOC_Linux_FB.map.smsg
+  c5_pin_model_dump.txt
+
+--------------------
 
 Generate BSP dir
 ================
@@ -82,7 +180,7 @@ Generate BSP dir
 You can run the bsp editor GUI, but the easy way for u-boot is to run the
 following command from the project directory::
 
-$ /path/to/bsb/tools/bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
+$ bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
 
 Now you can use the "build" dir above (ie, where the settings.bsp file is) in
 the following u-boot command to update the board headers.  Once these headers
