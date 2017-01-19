@@ -55,6 +55,7 @@ module Elite_7Seg
 //			---d---   DP
 
 // x     		g f e d c b a
+`define Seg7_OFF 7'b1111111
 `define Seg7_0 7'b1000000
 `define Seg7_1 7'b1111001
 `define Seg7_2 7'b0100100
@@ -98,15 +99,18 @@ always @(posedge CLOCK_50)
 	begin
 		Counter <= Counter + 24'h1;
 		
-		Elite_7Seg_5_Byte <= `Seg7_E; 
-		Elite_7Seg_4_Byte <= `Seg7_L; 
-		Elite_7Seg_3_Byte <= `Seg7_i; 
-		Elite_7Seg_2_Byte <= `Seg7_t; 
-		Elite_7Seg_1_Byte <= `Seg7_E; 
+		Elite_7Seg_5_Byte <= `Seg7_OFF; 
+		Elite_7Seg_4_Byte <= `Seg7_OFF; 
+		Elite_7Seg_3_Byte <= `Seg7_OFF; 
+		Elite_7Seg_2_Byte <= `Seg7_OFF; 
+		Elite_7Seg_1_Byte <= `Seg7_0; 
+		SevenSeg <= `Seg7_1;
 	end
 		
 //always block for converting bcd digit into 7 segment format
-always @(*)
+/*
+always @(posedge CLOCK_50) 
+
 		case(BCD)
 			4'h0: SevenSeg = `Seg7_0;
 			4'h1: SevenSeg = `Seg7_1;
@@ -126,6 +130,7 @@ always @(*)
 			4'hF: SevenSeg = `Seg7_F;
 			default: SevenSeg = 7'b1111111;			// default all off
 		endcase
-		
+*/		
+
 
 	endmodule

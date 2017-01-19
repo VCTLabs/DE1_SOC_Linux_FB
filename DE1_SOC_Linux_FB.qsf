@@ -945,6 +945,7 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+set_global_assignment -name VERILOG_FILE V/elite_I2C_slave.v
 set_global_assignment -name VERILOG_FILE V/DE1_SOC_Linux_FB.v
 set_global_assignment -name VERILOG_FILE V/vga_pll.v
 set_global_assignment -name VERILOG_FILE V/elite_SPI.v

@@ -61,7 +61,6 @@ reg [7:0] Byte_Count;
 // we handle SPI in 8-bits format, so we need a 3 bit counter to count the bits as they come in
 reg [2:0] Bit_Counter = 0;
 reg Byte_Rcvd_Flag = 0;                   // high when a byte has been received
-reg [7:0] Cmnd_Byte = 0;                  // write the first incoming SPI byte into this register
 
 
 wire SCLK_risingedge = (SCLKr[2:1] == 2'b01);  	// now we can detect USPI_SCLK rising edges
@@ -69,7 +68,7 @@ wire SCLK_fallingedge = (SCLKr[2:1] == 2'b10);  // and falling edges
 
 wire CSEL_active = ~CSELr[1];  						// USPI_CSEL is active low
 wire CSEL_startmessage = (CSELr[2:1]==2'b10);  	// message starts at falling edge
-wire CSEL_endmessage = (CSELr[2:1]==2'b01);  	// message stops at rising edge
+//wire CSEL_endmessage = (CSELr[2:1]==2'b01);  	// message stops at rising edge
 wire MOSI_data = MOSIr[1];
 
 // sync USPI_SCLK to the FPGA clock using a 3-bits shift left register
@@ -143,7 +142,7 @@ reg          	Flush_Rx_Fifo = 0;          	// Input new
 
 //***** External Net Definitions *********************************************************************
 reg  [7:0]     FIFO_Dequeue_Byte;         	// output pulls a byte off the FIFO
-reg            FIFO_Dequeue_Byte_Ready_Flag;	// Output
+//reg            FIFO_Dequeue_Byte_Ready_Flag;	// Output
 reg            FIFO_Empty_Flag;     			// Output
 wire           FIFO_Dequeue_Strobe = 0;      // Input
 
@@ -151,7 +150,7 @@ wire           FIFO_Dequeue_Strobe = 0;      // Input
 reg [7:0]      FIFO[FIFO_DEPTH-1:0] /* synthesis ramstyle = "no_rw_check" */;    // compiler directive, stop trying to correct the spelling Terra.
 reg [7:0]      FIFO_WR_Head_Index = 0;			// points to the next location to write to 
 reg [7:0]      FIFO_RD_Tail_Index = 0;			// points to the first location written that has not yet been read out
-reg            FIFO_Enqueue_Strobe;         	// used to confirm the incoming byte
+//reg            FIFO_Enqueue_Strobe;         	// used to confirm the incoming byte
 wire           UART_Rx_Overflow_Flag;       	// status from the UART
 reg            Rx_Fifo_WR_Full_Flag;   		// wait to write if the full flag is set to True
 reg[DATA_BITS-1:0] FIFO_Byte_Counter;        // counts the received bytes to check for overflow
@@ -217,13 +216,13 @@ always @( posedge MClk )
 //***** There is a byte ready, write it into the FIFO, strobe the signal to confirm we got it
          FIFO[FIFO_WR_Head_Index] <= Rcv_Data;
          FIFO_WR_Head_Index <= FIFO_WR_Head_Index + 1'b1;
-         FIFO_Enqueue_Strobe <= 1;
+         //FIFO_Enqueue_Strobe <= 1;
          end
       else  
          begin
          FIFO[FIFO_WR_Head_Index] <= FIFO[FIFO_WR_Head_Index];
          FIFO_WR_Head_Index <= FIFO_WR_Head_Index;
-         FIFO_Enqueue_Strobe <= 0;
+         //FIFO_Enqueue_Strobe <= 0;
          end
 
 //***** The Upper level wants to Dequeue a byte out of the FIFO ...
@@ -232,13 +231,13 @@ always @( posedge MClk )
          begin
          FIFO_Dequeue_Byte <= FIFO[FIFO_RD_Tail_Index];   				// pull from the tail ptr to empty the buffer
          FIFO_RD_Tail_Index <= FIFO_RD_Tail_Index + 1'b1;
-         FIFO_Dequeue_Byte_Ready_Flag <= 1;                         	// tell the upper routine, we've readied the byte
+         //FIFO_Dequeue_Byte_Ready_Flag <= 1;                         	// tell the upper routine, we've readied the byte
          end
       else
          begin
          FIFO_Dequeue_Byte <= FIFO_Dequeue_Byte;                     // if the fifo is empty, this data will be invalid
          FIFO_RD_Tail_Index <= FIFO_RD_Tail_Index;
-         FIFO_Dequeue_Byte_Ready_Flag <= 0;                         	// tell the upper routine, we've readied the byte
+         //FIFO_Dequeue_Byte_Ready_Flag <= 0;                         	// tell the upper routine, we've readied the byte
          end
          
       end

@@ -378,12 +378,26 @@ Elite_SPI_Slave SPI_Slave_1
 		.USPI_MISO											( GPIO_0[0] ),                         // Output               
 		.USPI_Rcvr											( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
 		//.USPI_Txmr
-		.USPI_SCLK_DUP										( GPIO_1[3] ),                         // Output (duplicate)                
-		.USPI_CSEL_DUP										( GPIO_1[2] ),                  			// Output  (duplicate)              
-		.USPI_MOSI_DUP										( GPIO_1[1] ),                         // Output (duplicate)                
-		.USPI_MISO_DUP										( GPIO_1[0] )                          // Output (duplicate)              
+		.USPI_SCLK_DUP										( GPIO_0[30] ),                         // Output (duplicate)                
+		.USPI_CSEL_DUP										( GPIO_0[31] ),                  			// Output  (duplicate)              
+		.USPI_MOSI_DUP										( GPIO_0[32] ),                         // Output (duplicate)                
+		.USPI_MISO_DUP										( GPIO_0[33] )                          // Output (duplicate)              
 		);
 
+// I2C slave input from HPS, use GPIO pins for connections.
+Elite_I2C_Slave I2C_Slave_1
+		(
+		.MClk													( CLOCK_50 ),                          // Input
+		.I2C_Rst_Flag										( hps_fpga_reset_n ),       				// Input                
+		.I2C_SCL												( GPIO_0[4] ),                         // Input                
+		.I2C_SDA												( GPIO_0[5] ),                  			// Input                
+		//.IOout												( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
+		//.IOin													( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
+		//.I2C_ADR												( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
+		//.Data_Ready_Flag									( Elite_SPI_Cmnd_Rcvd_8 ),             // Output 
+		.I2C_SCL_DUP										( GPIO_0[34] ),                         // Output (duplicate)                
+		.I2C_SDA_DUP										( GPIO_0[35] ),                  			// Output  (duplicate)              
+		);
 
 
 endmodule
