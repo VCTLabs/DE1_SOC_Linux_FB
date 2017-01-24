@@ -396,7 +396,7 @@ Elite_I2C_Slave I2C_Slave_1
 		//.I2C_ADR												( Elite_SPI_Cmnd_Rcvd_8 ),             // Output                
 		//.Data_Ready_Flag									( Elite_SPI_Cmnd_Rcvd_8 ),             // Output 
 		.I2C_SCL_DUP										( GPIO_0[34] ),                         // Output (duplicate)                
-		.I2C_SDA_DUP										( GPIO_0[35] ),                  			// Output  (duplicate)              
+		.I2C_SDA_DUP										( GPIO_0[35] )                  			// Output  (duplicate)              
 		);
 
 

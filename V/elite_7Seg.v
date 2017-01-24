@@ -104,7 +104,7 @@ always @(posedge CLOCK_50)
 		Elite_7Seg_3_Byte <= `Seg7_OFF; 
 		Elite_7Seg_2_Byte <= `Seg7_OFF; 
 		Elite_7Seg_1_Byte <= `Seg7_0; 
-		SevenSeg <= `Seg7_1;
+		SevenSeg <= `Seg7_2;
 	end
 		
 //always block for converting bcd digit into 7 segment format

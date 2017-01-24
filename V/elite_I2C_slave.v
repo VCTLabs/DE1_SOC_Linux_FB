@@ -15,6 +15,7 @@
 //***** PROPRIETARY
 //***** Created:  09 Jan 2017, TC
 //***** Revision Log: X1 - Using Example from Altera OpenCores.com fpga4fun.com, KNJN LLC
+//*****					X2 - 23 Jan 2017, TC - Added 3 byte format requirement: Addr | Register | Data and hard code address to b'0001010
 //***** 
 //**************************************************************************************************
 
@@ -33,8 +34,10 @@ module Elite_I2C_Slave
 	I2C_SDA_DUP,
 	IOout,
 	IOin,
-	I2C_ADR,
+	I2C_Adr,
+	I2C_Reg_Cmnd,
 	Data_Ready_Flag
+	
 	);
 
 input MClk;
@@ -45,8 +48,11 @@ output I2C_SCL_DUP;
 output I2C_SDA_DUP;
 output [7:0] IOout; 
 output [7:0] IOin;   
-output [6:0] I2C_ADR;
+output [6:0] I2C_Adr;
+output [7:0] I2C_Reg_Cmnd;
 output Data_Ready_Flag;
+
+
 
 
 //***** External Net Definitions *********************************************************************
@@ -58,33 +64,44 @@ reg 	incycle;			// active High ( 1 = transmitting in process, 0 = Ignore SDA lin
 
 wire I2C_SCL_DUP;
 wire I2C_SDA_DUP;
-reg SCLr;
+reg SCL_Wrap;
+reg SDA_Wrap;
 
 //***** Internal Net Definitions ***************************************************************************************
 reg [3:0] 	bitcnt;  					// counts the I2C bits from 7 down to 0, plus an ACK bit
 wire 			bit_DATA = ~bitcnt[3];  // the DATA bits are the first 8 bits sent - Stays True for the first 0-7 counts.
 wire 			bit_ACK = bitcnt[3];  	// the ACK bit is the 9th bit sent - becomes True only on the 8th count.
-reg 			data_phase;
-
-//***** wrap around pins for monitoring on the Analyzer
-assign I2C_SCL_DUP = SCLr;
-assign I2C_SDA_DUP = SDAr;
+reg 			Data_Phase;
+reg			Reg_Phase;
+wire			Adr_Phase;
 
 //***** Read the Address and check if it's for us
-wire adr_phase = ~data_phase;
-reg adr_match, op_read, got_ACK;
+reg adr_match; 
+reg op_read; 
+reg got_ACK;
 reg SDAr;  
-reg [7:0] mem;
-reg [6:0] I2C_ADR;						// Max number of registers is 127 (7'h7F)
+reg [7:0] Mem_Byte;
+reg [6:0] I2C_Adr;						// Max number of addresses is 127 (7'h7F)
+reg [7:0] I2C_Reg_Cmnd;					// Max number of registers is 0-5
 wire op_write = ~op_read;
+
+//***** Wrap around pins for monitoring on the Analyzer
+assign I2C_SCL_DUP = SCL_Wrap;
+assign I2C_SDA_DUP = SDA_Wrap;
+// Wrap SDA & SCL pins out to Duplicate header pins
+always @(posedge MClk) 
+	begin
+	SDA_Wrap <= I2C_SDA;
+	SCL_Wrap <= I2C_SCL;				// use intermediate registers due to bidirectional nature of GPIO & I2C lines
+	end
 
 // Detect Start Condition: While SCL=1, SDA=Falling Edge
 // Detect Stop Condition: While SCL=1, SDA=Rising Edge
 assign SDA_shadow = (~I2C_SCL | start_or_stop) ? I2C_SDA : SDA_shadow;
 assign start_or_stop = ~I2C_SCL ? 1'b0 : (I2C_SDA ^ SDA_shadow);
 
-//***** Detect write condition is finished 
-assign Data_Ready_Flag = bitcnt[3] & data_phase;
+// Create the boundaries for the 3 byte format: Adr | Register | Data
+assign Adr_Phase = ~Data_Phase & ~Reg_Phase;
 
 //***** Syncronize the clock edges coming in ********************************
 always @ (negedge I2C_SCL or posedge start_or_stop)
@@ -105,14 +122,20 @@ always @	(negedge I2C_SCL or negedge incycle)
 	if(~incycle)
 		begin
 		bitcnt <= 4'h7;  // the bit 7 is received first
-		data_phase <= 0;
+		Reg_Phase <= 0;
+		Data_Phase <= 0;
 		end
 	else
 		begin
 		if(bit_ACK)
 			begin
 			bitcnt <= 4'h7;
-			data_phase <= 1;
+			if ( ~Data_Phase ) Reg_Phase <= 1;
+			if ( Reg_Phase ) 
+				begin
+				Reg_Phase <= 0;
+				Data_Phase <= 1;
+				end
 			end
 		else
 			begin
@@ -120,14 +143,11 @@ always @	(negedge I2C_SCL or negedge incycle)
 			end
 		end
 	end
-
-
-
+	
 // sample SDA on posedge since the I2C spec specifies as low as 0µs hold-time on negedge
 always @(posedge I2C_SCL) 
 	begin
 	SDAr <= I2C_SDA;
-	SCLr <= I2C_SCL;						// using intermediate register due to bidirectional nature of GPIO
 	end
 	
 // slave writes to SDA on negitive edge of clocks pulses
@@ -141,39 +161,44 @@ always @(negedge I2C_SCL or negedge incycle)
 		end
 	else
 		begin
-		if (adr_phase & bit_ACK & I2C_ADR > 6) adr_match <= 0;
-		if (adr_phase & bitcnt==7 ) I2C_ADR[6] <= SDAr;
-		if (adr_phase & bitcnt==6 ) I2C_ADR[5] <= SDAr;
-		if (adr_phase & bitcnt==5 ) I2C_ADR[4] <= SDAr;
-		if (adr_phase & bitcnt==4 ) I2C_ADR[3] <= SDAr;
-		if (adr_phase & bitcnt==3 ) I2C_ADR[2] <= SDAr;
-		if (adr_phase & bitcnt==2 ) I2C_ADR[1] <= SDAr;
-		if (adr_phase & bitcnt==1 ) I2C_ADR[0] <= SDAr;
-		if (adr_phase & bitcnt==0 ) op_read <= SDAr;
+		if (Adr_Phase & bit_ACK & I2C_Adr != 7'b0001010) adr_match <= 0;			// Set address to 10 (0x0A)
+		if (Adr_Phase & bitcnt==7 ) I2C_Adr[6] <= SDAr;
+		if (Adr_Phase & bitcnt==6 ) I2C_Adr[5] <= SDAr;
+		if (Adr_Phase & bitcnt==5 ) I2C_Adr[4] <= SDAr;
+		if (Adr_Phase & bitcnt==4 ) I2C_Adr[3] <= SDAr;
+		if (Adr_Phase & bitcnt==3 ) I2C_Adr[2] <= SDAr;
+		if (Adr_Phase & bitcnt==2 ) I2C_Adr[1] <= SDAr;
+		if (Adr_Phase & bitcnt==1 ) I2C_Adr[0] <= SDAr;
+		if (Adr_Phase & bitcnt==0 ) op_read <= SDAr;
 		// we monitor the ACK to be able to free the bus when the master doesn't ACK during a read operation
 		if(bit_ACK) got_ACK <= ~SDAr;
-		if(adr_match & bit_DATA & data_phase & op_write) mem[bitcnt] <= SDAr;  // memory write
+		if(adr_match & bit_DATA & Reg_Phase & op_write ) I2C_Reg_Cmnd[bitcnt] <= SDAr;  // memory write
+		if(adr_match & bit_DATA & Data_Phase & op_write ) Mem_Byte[bitcnt] <= SDAr;  // memory write
 		end
 	end
 
 //***** Drive the SDA line as Data, Ack, or High Z (tristated)
-//wire 	mem_bit_low = ~mem[bitcnt[2:0]];
-wire 	SDA_assert_high = adr_match & data_phase & op_read & IOin[bitcnt[2:0]];
-wire 	SDA_assert_low = adr_match & bit_DATA & data_phase & op_read & ~(IOin[bitcnt[2:0]]) & got_ACK;
-wire 	SDA_assert_ACK = adr_match & bit_ACK & (adr_phase | op_write);
-wire 	SDA_OE = SDA_assert_low | SDA_assert_ACK | SDA_assert_high;
-wire 	SDA_Outr = SDA_assert_low | SDA_assert_ACK ? 1'b0 : 1'b1;
+//wire 	mem_bit_low = ~Mem_Byte[bitcnt[2:0]];
+wire 	SDA_assert_high = adr_match & Data_Phase & op_read & IOin[bitcnt[2:0]];
+wire 	SDA_assert_low  = adr_match & bit_DATA & Data_Phase & op_read & ~(IOin[bitcnt[2:0]]) & got_ACK;
+wire 	SDA_assert_high_r = adr_match & Reg_Phase & op_read & I2C_Reg_Cmnd[bitcnt[2:0]];
+wire 	SDA_assert_low_r  = adr_match & bit_DATA & Reg_Phase & op_read & ~(I2C_Reg_Cmnd[bitcnt[2:0]]) & got_ACK;
+wire 	SDA_assert_ACK = adr_match & bit_ACK & (Adr_Phase | op_write);
+wire 	SDA_OE = SDA_assert_low | SDA_assert_high | SDA_assert_low_r | SDA_assert_high_r | SDA_assert_ACK;
+wire 	SDA_Outr = SDA_assert_low | SDA_assert_low_r | SDA_assert_ACK ? 1'b0 : 1'b1;
+
+//***** Detect write condition is finished 
+assign Data_Ready_Flag = bitcnt[3] & Data_Phase & adr_match;
 
 assign I2C_SDA = SDA_OE ? SDA_Outr : 1'bz;
 
-assign IOout = mem;
-
+assign IOout = Mem_Byte;
 
 //***** Internal Control Register Definitions ***************************************************************************************
 wire			Data_Ready_Flag;
 reg [7:0]   I2C_Registers[7:0] 	/* synthesis ramstyle = "no_rw_check" */;
-reg [7:0]	IOin;         				// holds the outgoing bytes to write to the SDA line
-wire        I2C_WR_Full_Flag;   		// wait to write if the full flag is set to True
+reg [7:0]	IOin;         					// holds the outgoing bytes to write to the SDA line
+wire        I2C_WR_Full_Flag;   			// wait to write if the full flag is set to True
 
 
 always @( negedge I2C_SCL or negedge incycle )
@@ -182,12 +207,8 @@ always @( negedge I2C_SCL or negedge incycle )
    if( ~incycle )								// Load POR values
       begin
       IOin <= 8'h00;
-      //I2C_Registers[0] <= 8'h01;
-      I2C_Registers[1] <= 8'h01;		// Load HDL Version Major/Minor
-      //I2C_Registers[2] <= 8'h00;
-      I2C_Registers[3] <= 8'h00;		// Load HDL Status (reset status?)
-      //I2C_Registers[4] <= 8'h00;
-      //I2C_Registers[5] <= 8'h00;
+      I2C_Registers[1] <= 8'h02;			// Load HDL Version Major/Minor
+      I2C_Registers[3] <= 8'h00;			// Load HDL Status (reset status?)
       end
    else
 	
@@ -198,7 +219,7 @@ always @( negedge I2C_SCL or negedge incycle )
 			if ( bit_ACK )
 				begin
 //***** Determine which register to read from the first I2C byte.
-				case ( I2C_ADR )
+				case ( I2C_Reg_Cmnd )
 					7'b0000000: IOin <= I2C_Registers[0];			// Reg0 - API Version major/minor
 					7'b0000001: IOin <= I2C_Registers[1];			// Reg1 - HDL Version major
 					7'b0000010: IOin <= I2C_Registers[2];			// Reg2 - Command Word 0-255
@@ -213,7 +234,7 @@ always @( negedge I2C_SCL or negedge incycle )
       else if ( Data_Ready_Flag & op_write )
          begin
 //***** Determine which register to write to by the first I2C byte.
-			case ( I2C_ADR )
+			case ( I2C_Reg_Cmnd )
 				7'b0000000: I2C_Registers[0] <= IOout;		// Reg0 - API Version major/minor
 				7'b0000010: I2C_Registers[2] <= IOout;		// Reg2 - Command Word 0-255
 				7'b0000100: I2C_Registers[4] <= IOout;		// Reg4 - Data Length
@@ -228,38 +249,8 @@ always @( negedge I2C_SCL or negedge incycle )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //**************************************************************************************************
-//****** End FIFO Manager Block
+//****** End I2C slave Block
 //**************************************************************************************************
 
 
