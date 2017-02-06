@@ -36,7 +36,19 @@ module Elite_I2C_Slave
 	IOin,
 	I2C_Adr,
 	I2C_Reg_Cmnd,
-	Data_Ready_Flag
+	Data_Ready_Flag,
+	
+	incycle,
+	bitcnt,
+	Data_Phase,
+	Reg_Phase,
+	Adr_Phase,
+	got_ACK,
+	op_read,
+	SDA_OE,
+	adr_match,
+	bit_ACK,
+	SDA_assert_high_r
 	
 	);
 
@@ -53,7 +65,17 @@ output [7:0] I2C_Reg_Cmnd;
 output Data_Ready_Flag;
 
 
-
+output 	incycle;
+output [3:0]	bitcnt;
+output 	Data_Phase;
+output 	Reg_Phase;
+output 	Adr_Phase;
+output 	got_ACK;
+output 	op_read;
+output 	SDA_OE;
+output 	adr_match;
+output	bit_ACK;
+output	SDA_assert_high_r;
 
 //***** External Net Definitions *********************************************************************
 // We use two wires with a combinatorial loop to detect the start and stop conditions
@@ -161,7 +183,7 @@ always @(negedge I2C_SCL or negedge incycle)
 		end
 	else
 		begin
-		if (Adr_Phase & bit_ACK & I2C_Adr != 7'b0001010) adr_match <= 0;			// Set address to 10 (0x0A)
+		if (Adr_Phase & bitcnt==0 & I2C_Adr != 7'b0001010) adr_match <= 0;			// Set address to 10 (0x0A)
 		if (Adr_Phase & bitcnt==7 ) I2C_Adr[6] <= SDAr;
 		if (Adr_Phase & bitcnt==6 ) I2C_Adr[5] <= SDAr;
 		if (Adr_Phase & bitcnt==5 ) I2C_Adr[4] <= SDAr;
@@ -207,7 +229,7 @@ always @( negedge I2C_SCL or negedge incycle )
    if( ~incycle )								// Load POR values
       begin
       IOin <= 8'h00;
-      I2C_Registers[1] <= 8'h02;			// Load HDL Version Major/Minor
+      I2C_Registers[1] <= 8'h03;			// Load HDL Version Major/Minor
       I2C_Registers[3] <= 8'h00;			// Load HDL Status (reset status?)
       end
    else

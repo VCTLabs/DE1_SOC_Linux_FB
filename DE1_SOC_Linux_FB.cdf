@@ -6,7 +6,7 @@ JedecChain;
 	P ActionCode(Ign)
 		Device PartName(SOCVHPS) MfrSpec(OpMask(0));
 	P ActionCode(Cfg)
-		Device PartName(5CSEMA5) Path("C:/Projects/360 Systems/DE1 FPGA board/DE1_SOC_Linux_FB-master/git/DE1_SOC_Linux_FB/") File("DE1_SOC_Linux_FB.jic") MfrSpec(OpMask(1) SEC_Device(EPCS128) Child_OpMask(1 3));
+		Device PartName(5CSEMA5) Path("C:/Projects/360 Systems/DE1 FPGA board/DE1_SOC_Linux_FB-master_Elite/git/DE1_SOC_Linux_FB/") File("DE1_SOC_Linux_FB.jic") MfrSpec(OpMask(1) SEC_Device(EPCS128) Child_OpMask(1 3));
 
 ChainEnd;
 

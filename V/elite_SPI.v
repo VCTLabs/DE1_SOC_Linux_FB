@@ -9,6 +9,7 @@
 //***** PROPRIETARY
 //***** Created:  20 Dec 2016, TC
 //***** Revision Log: X1
+//*****						X2 - add Latch to capture last previous byte written to the MOSI.
 //***** 
 //**************************************************************************************************
 
@@ -20,21 +21,47 @@
 //***** Declare Top Module Inputs/Outputs/Bidir
 module Elite_SPI_Slave
    (
-   input          MClk, 									// master clock 20ns (50MHz)
-   input          USPI_Rst_Flag,        	        	// master signal for POR    
-   input          USPI_SCLK, 								// has to be slower than MClk. Provided by PC	
-   input          USPI_CSEL, 								// Active low, controlled by PC, not us, so monitor closely
-   input          USPI_MOSI, 								// The output from the HPS to the FPGA
-   output         USPI_MISO, 								// The output from the FPGA to the HPS
-   output  [7:0]  USPI_Rcvr,                       // The incoming SPI line as we get a byte (might need a flag w/this) 
-   output  [7:0]  USPI_Txmr,                       // The outgoing SPI line as we clock out a byte (might need a flag w/this, too)
-	output 			USPI_MOSI_DUP,									// wrap around outputs for monitoring on the logic analyzer              
-	output			USPI_MISO_DUP,									// wrap around outputs for monitoring on the logic analyzer           
-	output			USPI_SCLK_DUP,                         // wrap around outputs for monitoring on the logic analyzer  
-	output 			USPI_CSEL_DUP                  			// wrap around outputs for monitoring on the logic analyzer                
+	MClk, 									// master clock 20ns (50MHz)
+	USPI_Rst_Flag,        	        	// master signal for POR    
+	USPI_SCLK, 								// has to be slower than MClk. Provided by PC	
+	USPI_CSEL, 								// Active low, controlled by PC, not us, so monitor closely
+	USPI_MOSI, 								// The output from the HPS to the FPGA
+	USPI_MISO, 								// The output from the FPGA to the HPS
+	USPI_Rcvr,                       // The incoming SPI line as we get a byte (might need a flag w/this) 
+	USPI_Txmr,                       // The outgoing SPI line as we clock out a byte (might need a flag w/this, too)
+	USPI_MOSI_DUP,									// wrap around outputs for monitoring on the logic analyzer              
+	USPI_MISO_DUP,									// wrap around outputs for monitoring on the logic analyzer           
+	USPI_SCLK_DUP,                         // wrap around outputs for monitoring on the logic analyzer  
+	USPI_CSEL_DUP,                  			// wrap around outputs for monitoring on the logic analyzer                
+		
+	Byte_data_sent,
+	Bit_Counter,
+	CSEL_startmessage,
+	Byte_Rcvd_Flag,
+	Byte_data_Saved
 	);
    
+   input          MClk; 									// master clock 20ns (50MHz)
+   input          USPI_Rst_Flag;        	        	// master signal for POR    
+   input          USPI_SCLK; 								// has to be slower than MClk. Provided by PC	
+   input          USPI_CSEL; 								// Active low, controlled by PC, not us, so monitor closely
+   input          USPI_MOSI; 								// The output from the HPS to the FPGA
+   output         USPI_MISO; 								// The output from the FPGA to the HPS
+   output  [7:0]  USPI_Rcvr;                       // The incoming SPI line as we get a byte (might need a flag w/this) 
+   output  [7:0]  USPI_Txmr;                       // The outgoing SPI line as we clock out a byte (might need a flag w/this, too)
+	output 			USPI_MOSI_DUP;									// wrap around outputs for monitoring on the logic analyzer              
+	output			USPI_MISO_DUP;									// wrap around outputs for monitoring on the logic analyzer           
+	output			USPI_SCLK_DUP;                         // wrap around outputs for monitoring on the logic analyzer  
+	output 			USPI_CSEL_DUP;                  			// wrap around outputs for monitoring on the logic analyzer                
+	
+	
+	output [7:0] 	Byte_data_sent;
+	output [2:0] 	Bit_Counter;
+	output			CSEL_startmessage;
+	output 			Byte_Rcvd_Flag;
+	output [7:0] 	Byte_data_Saved;
 
+	
 //***** External Net Definitions *********************************************************************
 assign USPI_MISO = Byte_data_sent[7];  // send MSB first to the MISO pin
 assign USPI_Rcvr = Rcv_Data;
@@ -57,17 +84,18 @@ reg [1:0] MOSIr;
 
 reg [7:0] Byte_data_sent;
 reg [7:0] Byte_Count;
+reg [7:0] Byte_data_Saved;
 
 // we handle SPI in 8-bits format, so we need a 3 bit counter to count the bits as they come in
-reg [2:0] Bit_Counter = 0;
-reg Byte_Rcvd_Flag = 0;                   // high when a byte has been received
+reg [2:0] Bit_Counter;
+reg Byte_Rcvd_Flag;                   // high when a byte has been received
 
 
 wire SCLK_risingedge = (SCLKr[2:1] == 2'b01);  	// now we can detect USPI_SCLK rising edges
 wire SCLK_fallingedge = (SCLKr[2:1] == 2'b10);  // and falling edges
 
 wire CSEL_active = ~CSELr[1];  						// USPI_CSEL is active low
-wire CSEL_startmessage = (CSELr[2:1]==2'b10);  	// message starts at falling edge
+assign CSEL_startmessage = (CSELr[2:1]==2'b10);  	// message starts at falling edge
 //wire CSEL_endmessage = (CSELr[2:1]==2'b01);  	// message stops at rising edge
 wire MOSI_data = MOSIr[1];
 
@@ -110,7 +138,7 @@ always @( posedge MClk )
       begin
       if( CSEL_startmessage )			// use the startmsg pulse as a "do once" flag
 			begin
-         Byte_data_sent <= 0;  		// first byte sent in a message is going to be a dummy byte
+         Byte_data_sent <= Byte_data_Saved;  // first byte sent in a message is going to be the last byte from the prior message.
 			end
 		else if (( SCLK_fallingedge ) && (Bit_Counter != 3'b000))
 			begin
@@ -119,13 +147,14 @@ always @( posedge MClk )
 			//else
 				Byte_data_sent <= {Byte_data_sent[6:0], 1'b0};		// (shift left)
 			end
-		else if ( Byte_Rcvd_Flag ) 				// after we've rcv'd the complete byte we can transfer it to the outgoing variable.
+		if ( Byte_Rcvd_Flag ) 				// after we've rcv'd the complete byte we can transfer it to the outgoing variable.
 			begin
+			Byte_data_Saved <= Byte_data_sent;	// update the register if we're incycle
 			Byte_data_sent <= Rcv_Data;			// Future: Byte_data_sent <= FIFO_Dequeue_Byte;
 			end
       end
 	else
-		Byte_data_sent <= 0;							// clear the output line to zero.
+		Byte_data_Saved <= Byte_data_sent;		// Instead of clearing the buffer, save the last byte sent.
    end
    
    
