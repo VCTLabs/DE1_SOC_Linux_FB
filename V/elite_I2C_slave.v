@@ -38,7 +38,8 @@ module Elite_I2C_Slave
 	I2C_Reg_Cmnd,
 	Data_Ready_Flag,
 	
-	incycle,
+	
+	//incycle,
 	bitcnt,
 	Data_Phase,
 	Reg_Phase,
@@ -48,8 +49,12 @@ module Elite_I2C_Slave
 	SDA_OE,
 	adr_match,
 	bit_ACK,
-	SDA_assert_high_r
-	
+	bit_DATA,
+	incycle,
+	Bit_Cntr_Wrap,
+	I2C_Msg_Ovf_Flag,
+	SDA_shadow,
+	start_or_stop
 	);
 
 input MClk;
@@ -65,7 +70,7 @@ output [7:0] I2C_Reg_Cmnd;
 output Data_Ready_Flag;
 
 
-output 	incycle;
+//output 	incycle;
 output [3:0]	bitcnt;
 output 	Data_Phase;
 output 	Reg_Phase;
@@ -75,7 +80,12 @@ output 	op_read;
 output 	SDA_OE;
 output 	adr_match;
 output	bit_ACK;
-output	SDA_assert_high_r;
+output 	bit_DATA;
+output	incycle;
+output	Bit_Cntr_Wrap;
+output	I2C_Msg_Ovf_Flag;
+output	SDA_shadow;
+output	start_or_stop;
 
 //***** External Net Definitions *********************************************************************
 // We use two wires with a combinatorial loop to detect the start and stop conditions
@@ -88,6 +98,7 @@ wire I2C_SCL_DUP;
 wire I2C_SDA_DUP;
 reg SCL_Wrap;
 reg SDA_Wrap;
+wire Bit_Cntr_Wrap;
 
 //***** Internal Net Definitions ***************************************************************************************
 reg [3:0] 	bitcnt;  					// counts the I2C bits from 7 down to 0, plus an ACK bit
@@ -96,26 +107,25 @@ wire 			bit_ACK = bitcnt[3];  	// the ACK bit is the 9th bit sent - becomes True
 reg 			Data_Phase;
 reg			Reg_Phase;
 wire			Adr_Phase;
+reg			I2C_Msg_Ovf_Flag;
+reg [15:0]	I2C_Msg_Ovf_Cntr;
 
 //***** Read the Address and check if it's for us
 reg adr_match; 
 reg op_read; 
 reg got_ACK;
-reg SDAr;  
+reg SDAr; 
+reg [2:0] SCL_Shft;
 reg [7:0] Mem_Byte;
-reg [6:0] I2C_Adr;						// Max number of addresses is 127 (7'h7F)
-reg [7:0] I2C_Reg_Cmnd;					// Max number of registers is 0-5
+reg [6:0] I2C_Adr;														// Max number of addresses is 3-127 (7'h7F)
+reg [7:0] I2C_Reg_Cmnd;													// Max number of registers is 0-5
 wire op_write = ~op_read;
+
 
 //***** Wrap around pins for monitoring on the Analyzer
 assign I2C_SCL_DUP = SCL_Wrap;
 assign I2C_SDA_DUP = SDA_Wrap;
-// Wrap SDA & SCL pins out to Duplicate header pins
-always @(posedge MClk) 
-	begin
-	SDA_Wrap <= I2C_SDA;
-	SCL_Wrap <= I2C_SCL;				// use intermediate registers due to bidirectional nature of GPIO & I2C lines
-	end
+assign Bit_Cntr_Wrap = bitcnt[0];
 
 // Detect Start Condition: While SCL=1, SDA=Falling Edge
 // Detect Stop Condition: While SCL=1, SDA=Rising Edge
@@ -125,16 +135,66 @@ assign start_or_stop = ~I2C_SCL ? 1'b0 : (I2C_SDA ^ SDA_shadow);
 // Create the boundaries for the 3 byte format: Adr | Register | Data
 assign Adr_Phase = ~Data_Phase & ~Reg_Phase;
 
+
+// Wrap SDA & SCL pins out to Duplicate header pins and buffer our internal register to account for delayed rise times.
+always @(posedge MClk) 
+	begin
+	SDA_Wrap <= SDAr;														// use intermediate registers due to bidirectional nature of GPIO & I2C lines
+	SCL_Wrap <= SCL_Shft[2];											// delay by 2 Mclock cycles to account for lag in SDA rise/fall times (weak pullups).
+	SCL_Shft <= {SCL_Shft[1:0], I2C_SCL};							// concatinate the current state into the shift register so we sample SDA AFTER clk
+	end
+
+// Create a timeout counter to release the SDA line, if we timeout.
+always @(posedge MClk) 
+	begin
+	if(~incycle)
+		begin
+		I2C_Msg_Ovf_Cntr <= 16'h1;										// reload the value of one so we can use a rollover detect function to trip the flag
+		I2C_Msg_Ovf_Flag <= 1'b0;										// 
+		end
+	else
+		begin
+		// we increment the timeout counter to be able to free the bus from too long of a read operation.
+		if ( ~I2C_Msg_Ovf_Cntr )										// timeout to release SDA when countdown rolls over to zero
+			begin
+			I2C_Msg_Ovf_Cntr <= I2C_Msg_Ovf_Cntr + 16'h1;		// at MClk of 20ns it would be 128 x 500 = 64000, so using 16bits we can hit 65535 which is close
+			I2C_Msg_Ovf_Flag <= 1'b0;
+			end
+		else
+			begin
+			I2C_Msg_Ovf_Flag <= 1'b1;
+			end
+		end
+	end
+	
+
+// sample SDA on posedge since the I2C spec specifies as low as 0µs hold-time on negedge - DO NOT READ SDA as data directly on negedge of SCL.
+always @ (posedge I2C_SCL) 
+	begin
+	SDAr <= I2C_SDA;
+	end
+	
 //***** Syncronize the clock edges coming in ********************************
 always @ (negedge I2C_SCL or posedge start_or_stop)
 	begin
-	if (start_or_stop) 
+	if (start_or_stop ) 
 		begin
 		incycle <= 1'b0;
 		end
-	else if (~I2C_SDA) // only if the SDA is low during the clock falling edge
+	else 
 		begin
-		incycle <= 1'b1;			
+		if (~I2C_SDA) 									// This is negation with z black magic, be VERY careful re-arraging this whole if/else statement.
+			begin
+			incycle <= 1'b1;	 						// only if the SDA was changed from what it was at the rising edge
+			end
+		else if ( I2C_Msg_Ovf_Flag)
+			begin
+			incycle <= 1'b0;												// safety timeout to release the SDA line after 131 SCLK cycles (approx 131 msecs)
+			end
+		else
+			begin
+			incycle <= incycle;							// implicit do not change incycle if none of the above apply
+			end
 		end
 	end
 
@@ -143,7 +203,7 @@ always @	(negedge I2C_SCL or negedge incycle)
 	begin
 	if(~incycle)
 		begin
-		bitcnt <= 4'h7;  // the bit 7 is received first
+		bitcnt <= 4'h7;  												// the bit 7 is received first
 		Reg_Phase <= 0;
 		Data_Phase <= 0;
 		end
@@ -153,7 +213,7 @@ always @	(negedge I2C_SCL or negedge incycle)
 			begin
 			bitcnt <= 4'h7;
 			if ( ~Data_Phase ) Reg_Phase <= 1;
-			if ( Reg_Phase ) 
+			if ( Reg_Phase | op_read ) 
 				begin
 				Reg_Phase <= 0;
 				Data_Phase <= 1;
@@ -166,13 +226,7 @@ always @	(negedge I2C_SCL or negedge incycle)
 		end
 	end
 	
-// sample SDA on posedge since the I2C spec specifies as low as 0µs hold-time on negedge
-always @(posedge I2C_SCL) 
-	begin
-	SDAr <= I2C_SDA;
-	end
-	
-// slave writes to SDA on negitive edge of clocks pulses
+// slave writes to SDA on negitive edge of clocks pulses while using SDA data sampled earlier.
 always @(negedge I2C_SCL or negedge incycle)
 	begin
 	if(~incycle)
@@ -193,21 +247,21 @@ always @(negedge I2C_SCL or negedge incycle)
 		if (Adr_Phase & bitcnt==1 ) I2C_Adr[0] <= SDAr;
 		if (Adr_Phase & bitcnt==0 ) op_read <= SDAr;
 		// we monitor the ACK to be able to free the bus when the master doesn't ACK during a read operation
-		if(bit_ACK) got_ACK <= ~SDAr;
-		if(adr_match & bit_DATA & Reg_Phase & op_write ) I2C_Reg_Cmnd[bitcnt] <= SDAr;  // memory write
-		if(adr_match & bit_DATA & Data_Phase & op_write ) Mem_Byte[bitcnt] <= SDAr;  // memory write
+		if (bit_ACK) got_ACK <= ~SDAr;
+		if (adr_match & bit_DATA & Reg_Phase & op_write ) I2C_Reg_Cmnd[bitcnt] <= SDAr;  // memory write
+		if (adr_match & bit_DATA & Data_Phase & op_write ) Mem_Byte[bitcnt] <= SDAr;  	// memory write
 		end
 	end
 
-//***** Drive the SDA line as Data, Ack, or High Z (tristated)
+//***** Drive the SDA line as Data(during a read), Ack, or High Z (tristated)
 //wire 	mem_bit_low = ~Mem_Byte[bitcnt[2:0]];
-wire 	SDA_assert_high = adr_match & Data_Phase & op_read & IOin[bitcnt[2:0]];
-wire 	SDA_assert_low  = adr_match & bit_DATA & Data_Phase & op_read & ~(IOin[bitcnt[2:0]]) & got_ACK;
-wire 	SDA_assert_high_r = adr_match & Reg_Phase & op_read & I2C_Reg_Cmnd[bitcnt[2:0]];
-wire 	SDA_assert_low_r  = adr_match & bit_DATA & Reg_Phase & op_read & ~(I2C_Reg_Cmnd[bitcnt[2:0]]) & got_ACK;
+wire 	SDA_assert_high = adr_match & bit_DATA & Data_Phase & op_read & IOin[bitcnt[2:0]] & got_ACK & ~I2C_Msg_Ovf_Flag;
+wire 	SDA_assert_low  = adr_match & bit_DATA & Data_Phase & op_read & ~(IOin[bitcnt[2:0]]) & got_ACK & ~I2C_Msg_Ovf_Flag;
+//wire 	SDA_assert_high_r = adr_match & Reg_Phase & op_read & I2C_Reg_Cmnd[bitcnt[2:0]];
+//wire 	SDA_assert_low_r  = adr_match & bit_DATA & Reg_Phase & op_read & ~(I2C_Reg_Cmnd[bitcnt[2:0]]) & got_ACK;
 wire 	SDA_assert_ACK = adr_match & bit_ACK & (Adr_Phase | op_write);
-wire 	SDA_OE = SDA_assert_low | SDA_assert_high | SDA_assert_low_r | SDA_assert_high_r | SDA_assert_ACK;
-wire 	SDA_Outr = SDA_assert_low | SDA_assert_low_r | SDA_assert_ACK ? 1'b0 : 1'b1;
+wire 	SDA_OE = SDA_assert_low | SDA_assert_high | SDA_assert_ACK; // | SDA_assert_high_r SDA_assert_low_r | 
+wire 	SDA_Outr = SDA_assert_low | SDA_assert_ACK ? 1'b0 : 1'bz; //| SDA_assert_low_r 
 
 //***** Detect write condition is finished 
 assign Data_Ready_Flag = bitcnt[3] & Data_Phase & adr_match;
@@ -223,13 +277,13 @@ reg [7:0]	IOin;         					// holds the outgoing bytes to write to the SDA lin
 wire        I2C_WR_Full_Flag;   			// wait to write if the full flag is set to True
 
 
-always @( negedge I2C_SCL or negedge incycle )
+always @( negedge I2C_SCL_DUP or negedge incycle )
    begin
 	
    if( ~incycle )								// Load POR values
       begin
       IOin <= 8'h00;
-      I2C_Registers[1] <= 8'h03;			// Load HDL Version Major/Minor
+      I2C_Registers[1] <= 8'h04;			// Load HDL Version Major/Minor
       I2C_Registers[3] <= 8'h00;			// Load HDL Status (reset status?)
       end
    else
