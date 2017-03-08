@@ -1,13 +1,13 @@
-// (C) 2001-2013 Altera Corporation. All rights reserved.
-// Your use of Altera Corporation's design tools, logic functions and other 
+// (C) 2001-2016 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files any of the foregoing (including device programming or simulation 
 // files), and any associated documentation or information are expressly subject 
-// to the terms and conditions of the Altera Program License Subscription 
-// Agreement, Altera MegaCore Function License Agreement, or other applicable 
+// to the terms and conditions of the Intel Program License Subscription 
+// Agreement, Intel MegaCore Function License Agreement, or other applicable 
 // license agreement, including, without limitation, that your use is for the 
-// sole purpose of programming logic devices manufactured by Altera and sold by 
-// Altera or its authorized distributors.  Please refer to the applicable 
+// sole purpose of programming logic devices manufactured by Intel and sold by 
+// Intel or its authorized distributors.  Please refer to the applicable 
 // agreement for further details.
 
 
@@ -24,7 +24,8 @@ module altera_merlin_axi_slave_ni
     // -----------------------------------------------
     // Packet format parameters
     // -----------------------------------------------
-
+	parameter PKT_ORI_BURST_SIZE_H        = 120,
+	parameter PKT_ORI_BURST_SIZE_L 		  = 118,
     parameter PKT_QOS_H                   = 117,
     parameter PKT_QOS_L                   = 114,
     parameter PKT_THREAD_ID_H             = 113,
@@ -68,7 +69,7 @@ module altera_merlin_axi_slave_ni
     // -----------------------------------------------
     // Component parameters
     // -----------------------------------------------
-    parameter ST_DATA_W                   = 118,
+    parameter ST_DATA_W                   = 121,
     parameter ADDR_WIDTH                  = 32,
     parameter RDATA_WIDTH                 = 32,
     parameter WDATA_WIDTH                 = 32,
@@ -89,8 +90,8 @@ module altera_merlin_axi_slave_ni
     parameter NUMSYMBOLS                  = PKT_DATA_W / 8,
     //DATA_USER_WIDTH: w/ruser is not supported in AXI3. set it to default 1 and axi trasnlator will terminate this connection appropriately
     parameter DATA_USER_WIDTH             = 8,
-    parameter AXI_LOCK_WIDTH              = (AXI_VERSION == "AXI3") ? 2:1,
-    parameter AXI_BURST_LENGTH_WIDTH      = (AXI_VERSION == "AXI3") ? 4:8
+    parameter AXI_LOCK_WIDTH              = (AXI_VERSION == "AXI4") ? 1:2,
+    parameter AXI_BURST_LENGTH_WIDTH      = (AXI_VERSION == "AXI4") ? 8:4
 
 )
 (
@@ -187,7 +188,7 @@ module altera_merlin_axi_slave_ni
     localparam  MASTER_ID_W         = PKT_SRC_ID_H - PKT_SRC_ID_L + 1;
     localparam  SLAVE_ID_W          = PKT_DEST_ID_H - PKT_DEST_ID_L + 1;
     localparam  THREAD_ID_W         = PKT_THREAD_ID_H - PKT_THREAD_ID_L + 1;
-    localparam  BURST_SIZE_W        = 3;
+    localparam  BURST_SIZE_W        = PKT_BURST_SIZE_H - PKT_BURST_SIZE_L + 1;
     localparam  BURST_TYPE_W        = 2;
     localparam  BYTECOUNT_W         = PKT_BYTE_CNT_H - PKT_BYTE_CNT_L + 1;
     localparam  BURSTWRAP_W         = PKT_BURSTWRAP_H - PKT_BURSTWRAP_L + 1;
@@ -225,11 +226,10 @@ module altera_merlin_axi_slave_ni
     wire [THREAD_ID_W-1:0]    write_cmd_threadid;
     wire [1:0]                write_cmd_lock;
     reg  [BURST_TYPE_W-1:0]   write_cmd_bursttype;
-    wire [2:0]                write_cmd_size;
+    wire [BURST_SIZE_W-1:0]   write_cmd_size;
     wire [PROTECTION_W-1:0]   write_cmd_protection;
     wire [CACHE_W-1:0]        write_cmd_cache;
     wire [USER_W-1:0]         write_cmd_user;
-    wire [3:0]                write_cmd_qos;
   
     reg                       internal_write_cp_endofburst;
     reg                       internal_read_cp_startofburst;
@@ -237,7 +237,7 @@ module altera_merlin_axi_slave_ni
   
     wire [ADDR_WIDTH-1:0]     read_cmd_addr;
     wire [ADDR_WIDTH-1:0]     read_cmd_addr_aligned;
-    wire [2:0]                read_cmd_size;
+    wire [BURST_SIZE_W-1:0]   read_cmd_size;
     reg  [BYTECOUNT_W-1:0]    read_cmd_bytecount;
     wire [MASTER_ID_W-1:0]    read_cmd_mid;
     wire [THREAD_ID_W-1:0]    read_cmd_threadid;
@@ -246,7 +246,6 @@ module altera_merlin_axi_slave_ni
     wire [CACHE_W-1:0]        read_cmd_cache;
     reg  [BURST_TYPE_W-1:0]   read_cmd_bursttype;
     wire [USER_W-1:0]         read_cmd_user;
-    wire [3:0]                read_cmd_qos;
     wire                      read_cmd_compressed;
   
     wire                      awvalid_suppress; 
@@ -307,7 +306,6 @@ module altera_merlin_axi_slave_ni
     assign write_cmd_cache       = write_cp_data[PKT_CACHE_H : PKT_CACHE_L];
     assign write_cmd_bursttype   = write_cp_data[PKT_BURST_TYPE_H : PKT_BURST_TYPE_L];
     assign write_cmd_user        = write_cp_data[PKT_ADDR_SIDEBAND_H : PKT_ADDR_SIDEBAND_L];
-    assign write_cmd_qos         = write_cp_data[PKT_QOS_H : PKT_QOS_L];
     assign awlen_wire            = (write_cmd_bytecount >> log2ceil(PKT_DATA_W / 8)) - 1;
 
     // assign all signals to pass through to AXI AW* and W* channels, except for last, valid and ready 
@@ -317,7 +315,7 @@ module altera_merlin_axi_slave_ni
     end
     assign awaddr        = write_cmd_addr;
     assign awlen         = awlen_wire[AXI_BURST_LENGTH_WIDTH-1:0];
-    assign awsize        = write_cmd_size;
+    assign awsize        = write_cmd_size[2:0];
     assign awcache       = write_cmd_cache;
     assign awprot        = write_cmd_protection;
     assign awlock        = write_cmd_lock[AXI_LOCK_WIDTH-1:0];
@@ -335,7 +333,9 @@ module altera_merlin_axi_slave_ni
     generate
         if (AXI_VERSION == "AXI4") begin
             wire [DATA_USER_WIDTH-1:0] write_cmd_wuser;
+            wire [3:0]                 write_cmd_qos;
             assign write_cmd_wuser       = write_cp_data[PKT_DATA_SIDEBAND_H : PKT_DATA_SIDEBAND_L];
+            assign write_cmd_qos         = write_cp_data[PKT_QOS_H : PKT_QOS_L];
             assign wuser         = write_cmd_wuser;
             assign awqos         = write_cmd_qos;
             assign awregion      = 4'b0;
@@ -435,8 +435,9 @@ module altera_merlin_axi_slave_ni
     always_comb
     begin
         write_rp_data = write_rsp_fifo_outdata[ST_DATA_W-1:0];
-        write_rp_data[PKT_DEST_ID_H:PKT_DEST_ID_L]       = write_rsp_fifo_outdata[PKT_SRC_ID_H:PKT_SRC_ID_L];
-        write_rp_data[PKT_SRC_ID_H:PKT_SRC_ID_L]         = write_rsp_fifo_outdata[PKT_DEST_ID_H:PKT_DEST_ID_L];
+        write_rp_data[PKT_DEST_ID_H:PKT_DEST_ID_L]       			= write_rsp_fifo_outdata[PKT_SRC_ID_H:PKT_SRC_ID_L];
+        write_rp_data[PKT_SRC_ID_H:PKT_SRC_ID_L]         			= write_rsp_fifo_outdata[PKT_DEST_ID_H:PKT_DEST_ID_L];
+		write_rp_data[PKT_ORI_BURST_SIZE_H:PKT_ORI_BURST_SIZE_L]	= write_rsp_fifo_outdata[PKT_ORI_BURST_SIZE_H:PKT_ORI_BURST_SIZE_L];
         if (PASS_ID_TO_SLAVE) begin
             { write_rp_data[PKT_DEST_ID_H:PKT_DEST_ID_L], write_rp_data[PKT_THREAD_ID_H:PKT_THREAD_ID_L] }  = bid;
         end
@@ -569,7 +570,6 @@ module altera_merlin_axi_slave_ni
     assign read_cmd_cache           = read_cp_data[PKT_CACHE_H:PKT_CACHE_L];
     assign read_cmd_bursttype       = read_cp_data[PKT_BURST_TYPE_H:PKT_BURST_TYPE_L];
     assign read_cmd_user            = read_cp_data[PKT_ADDR_SIDEBAND_H : PKT_ADDR_SIDEBAND_L];
-    assign read_cmd_qos             = read_cp_data[PKT_QOS_H : PKT_QOS_L];
     assign read_cmd_compressed      = read_cp_data[PKT_TRANS_COMPRESSED_READ];
     assign read_cmd_lock            = { 1'b0, read_cp_data[PKT_TRANS_EXCLUSIVE] };
     assign arlen_wire               = read_cmd_compressed ? (read_cmd_bytecount >> log2ceil(PKT_DATA_W / 8)) - 1 : '0;
@@ -581,7 +581,7 @@ module altera_merlin_axi_slave_ni
     end   
     assign araddr       = read_cmd_addr;
     assign arlen        = arlen_wire[AXI_BURST_LENGTH_WIDTH-1:0];         
-    assign arsize       = read_cmd_size;
+    assign arsize       = read_cmd_size[2:0];
     assign arlock       = read_cmd_lock[AXI_LOCK_WIDTH-1:0];
     assign arcache      = read_cmd_cache;
     assign arprot       = read_cmd_protection;
@@ -589,6 +589,8 @@ module altera_merlin_axi_slave_ni
     assign arburst      = read_cmd_bursttype;
     generate
         if (AXI_VERSION == "AXI4") begin
+            wire [3:0]  read_cmd_qos;
+            assign read_cmd_qos = read_cp_data[PKT_QOS_H : PKT_QOS_L];
             assign arqos        = read_cmd_qos;
             assign arregion     = 4'b0;
         end
@@ -601,7 +603,7 @@ module altera_merlin_axi_slave_ni
     // Align the input address to burst uncompressor, as 
     // we want the return addresses are ligned
     // ----------------------------------------
-    reg [ADDR_WIDTH + (BURSTWRAP_W-1) + 4:0]     address_for_alignment;
+    reg [ADDR_WIDTH + (BURSTWRAP_W-1) + BURST_SIZE_W + BURST_TYPE_W - 1:0]     address_for_alignment;
     reg [ADDR_WIDTH + log2ceil(NUMSYMBOLS)-1:0] address_after_aligned;
 
     assign address_for_alignment    = {read_cmd_addr, read_cmd_size};
@@ -612,7 +614,8 @@ module altera_merlin_axi_slave_ni
           .ADDR_W            (ADDR_WIDTH),
           .BURSTWRAP_W       (BURSTWRAP_W),
           .INCREMENT_ADDRESS (0),
-          .NUMSYMBOLS        (NUMSYMBOLS)
+          .NUMSYMBOLS        (NUMSYMBOLS),
+          .SIZE_W            (BURST_SIZE_W)
           ) check_and_align_address_to_size
             (
              .clk(aclk),
@@ -665,6 +668,7 @@ module altera_merlin_axi_slave_ni
             read_rp_data[PKT_BURST_SIZE_H:PKT_BURST_SIZE_L] = uncompressor_burstsize;
             read_rp_data[PKT_DEST_ID_H:PKT_DEST_ID_L]       = read_rsp_fifo_outdata[PKT_SRC_ID_H:PKT_SRC_ID_L];
             read_rp_data[PKT_SRC_ID_H:PKT_SRC_ID_L]         = read_rsp_fifo_outdata[PKT_DEST_ID_H:PKT_DEST_ID_L];
+			read_rp_data[PKT_ORI_BURST_SIZE_H:PKT_ORI_BURST_SIZE_L] = read_rsp_fifo_outdata[PKT_ORI_BURST_SIZE_H:PKT_ORI_BURST_SIZE_L];
             read_rp_data[PKT_RESPONSE_STATUS_H:PKT_RESPONSE_STATUS_L] = rresp;
 
             if (PASS_ID_TO_SLAVE) begin
@@ -726,7 +730,8 @@ module altera_merlin_axi_slave_ni
         .ADDR_W         (ADDR_WIDTH),
         .BURSTWRAP_W    (BURSTWRAP_W),
         .BYTE_CNT_W     (BYTECOUNT_W),
-        .PKT_SYMBOLS    (NUMSYMBOLS)
+        .PKT_SYMBOLS    (NUMSYMBOLS),
+        .BURST_SIZE_W   (BURST_SIZE_W)
     ) read_burst_uncompressor (
         .clk                    (aclk),
         .reset                  (areset),

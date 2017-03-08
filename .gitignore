@@ -6,42 +6,16 @@
 *~
 # quartus
 
-db/*.ammdb
-db/*.bpm
-db/*.cdb
-db/*.cnf
-db/*.flock
-db/*.ddb
-db/*.hdb
-db/*.hif
-db/*.hsd
-db/*.html
-db/*.idb
-db/*.kpt
-db/*.logdb
-db/*.qmsg
-db/*.rdb
-db/*.sci
-db/*.tdb
-db/*.txt
-db/*info
-db/.cmp.kpt
-db/**.soopcinfo
-db/**.html
-db/**.xml
-db/**.tmp
-db/**.hdbx
+db/
+build/
+incremental_db/
 
-soc_system.sopcinfo
-soc_system/*.rpt
-soc_system/*.html
-soc_system/*.debuginfo
-soc_system/synthesis/*.debuginfo
-soc_system/synthesis/*.gip
-soc_system/synthesis/*.svp
+soc_system_testsoc_system/
+soc_system/
 
-stamp/*
+#stamp/*
 
+*.jdi
 *.done
 *.rpt
 *.sld
@@ -50,6 +24,4 @@ stamp/*
 *.jdi
 *.pin
 *.sof
-  
-incremental_db/*
-
+#*.sopcinfo  

@@ -1,13 +1,13 @@
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -335,15 +335,15 @@ proc hps_sdram_p0_perform_flexible_write_launch_timing_analysis {opcs opcname in
 
 						# Remember the largest shifts in either direction
 						if {[info exist max_shift]} {
-							if {[expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2 + $extra_pessimism/2] > $max_shift} {
-								set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2 + $extra_pessimism/2]
+							if {[expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2] > $max_shift} {
+								set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2]
 							}
-							if {[expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2 - $extra_pessimism/2] < $min_shift} {
-								set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2 - $extra_pessimism/2]
+							if {[expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2] < $min_shift} {
+								set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2]
 							}
 						} else {
-							set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2 + $extra_pessimism/2]
-							set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2 - $extra_pessimism/2]
+							set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2]
+							set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2]
 						}
 					}
 				} else {
@@ -714,8 +714,13 @@ proc hps_sdram_p0_perform_flexible_read_capture_timing_analysis {opcs opcname in
 	set default_hold_slack  1000000000	
 		
 	# Find quiet jitter values during calibration
+	if {$family == "arria v"} {
+		set quiet_clk_jitter_proportion 0.25
+	} else {
+		set quiet_clk_jitter_proportion 0.5
+	}
 	set quiet_setup_jitter [expr 0.8*$DQSpathjitter*$DQSpathjitter_setup_prop]
-	set quiet_hold_jitter  [expr 0.8*$DQSpathjitter*(1-$DQSpathjitter_setup_prop) + 0.8*$tJITper/2]
+	set quiet_hold_jitter  [expr 0.8*$DQSpathjitter*(1-$DQSpathjitter_setup_prop) + $quiet_clk_jitter_proportion*$tJITper/2]		
 	set max_read_deskew_setup [expr $IP(read_deskew_range_setup)*$IP(quantization_T1)]
 	set max_read_deskew_hold  [expr $IP(read_deskew_range_hold)*$IP(quantization_T1)]
 		
@@ -840,15 +845,15 @@ proc hps_sdram_p0_perform_flexible_read_capture_timing_analysis {opcs opcname in
 						
 						# Remember the largest shifts in either direction
 						if {[info exist max_shift]} {
-							if {[expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2  + $extra_pessimism/2] > $max_shift} {
-								set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2  + $extra_pessimism/2]
+							if {[expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2] > $max_shift} {
+								set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2]
 							}
-							if {[expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2  - $extra_pessimism/2] < $min_shift} {
-								set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2 - $extra_pessimism/2]
+							if {[expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2] < $min_shift} {
+								set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2]
 							}
 						} else {
-							set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2 + $extra_pessimism/2]
-							set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2 - $extra_pessimism/2]
+							set max_shift [expr $shift_setup_slack + $DQSpath_pessimism/2 + $DQpath_pessimism/2]
+							set min_shift [expr $shift_setup_slack - $DQSpath_pessimism/2 - $DQpath_pessimism/2]
 						}
 					}
 				} else {
@@ -943,11 +948,19 @@ proc hps_sdram_p0_perform_flexible_read_capture_timing_analysis {opcs opcname in
 		lappend rc_summary [list "  Quantization error" [hps_sdram_p0_format_3dp [expr 0-$t1_quantization]] [hps_sdram_p0_format_3dp [expr 0-$t1_quantization]]]
 		
 		# Consider variation in the delay chains used during dynamic deksew
-		set offset_from_90 [expr abs(90-$dqs_phase)/360.0*$period]
+		set dqs_period [ hps_sdram_p0_get_dqs_period $pins(dqs_pins) ]
+		set offset_from_90 [hps_sdram_p0_get_acv_read_offset $period $dqs_phase $dqs_period]
 		if {$IP(num_ranks) == 1} {
-			set t1_variation [expr [min [expr $offset_from_90 + [max [expr $MP(DQSQ)*$t(DQSQ)] [expr $MP(QH_time)*(0.5*$period - $t(QH_time))]] + 2*$board(intra_DQS_group_skew) + $max_package_skew + $fpga(tDQS_PSERR)] [max $max_read_deskew_setup $max_read_deskew_hold]]*2*$t1_vt_variation_percent]
+			set t1_variation [expr [min [expr $offset_from_90 + [max [expr $MP(DQSQ)*$t(DQSQ)] [expr $MP(QH_time)*(0.5*$period - $t(QH_time))]] + 2*$board(intra_DQS_group_skew) + $max_package_skew + $fpga(tDQS_PSERR)] [max $max_read_deskew_setup $max_read_deskew_hold]]*2*$t1_vt_variation_percent*0.75]
 		} else {
-			set t1_variation [expr [min [expr $offset_from_90 + 2*$board(intra_DQS_group_skew) + $max_package_skew + $fpga(tDQS_PSERR)] [max $max_read_deskew_setup $max_read_deskew_hold]]*2*$t1_vt_variation_percent]
+			set t1_variation [expr [min [expr $offset_from_90 + 2*$board(intra_DQS_group_skew) + $max_package_skew + $fpga(tDQS_PSERR)] [max $max_read_deskew_setup $max_read_deskew_hold]]*2*$t1_vt_variation_percent*0.75]
+		}
+		if {($dqs_period < 1.250) && ($family == "arria v")} {
+			set speedgrade [string trim [string range [get_speedgrade_string] 0 0]]
+			if {$speedgrade == 6} {
+				set further_dqs_pserr 0.025
+				set t1_variation [expr $t1_variation + $further_dqs_pserr]
+			}
 		}
 		set setup_slack [expr $setup_slack - $t1_variation]
 		set hold_slack  [expr $hold_slack - $t1_variation]	
@@ -1671,7 +1684,15 @@ proc hps_sdram_p0_perform_resync_timing_analysis {opcs opcname inst fbasename fa
 		regexp {read_buffering\[(\d+)\]\.read_subgroup} $reg_name match dqs_group_number
 
 		set dqs_pin [lindex $pins(dqs_pins) $dqs_group_number]
-
+      if {!([info exists max_DQS_to_fifo_paths_max($dqs_pin)] &&
+		     [info exists min_DQS_to_fifo_paths_min($dqs_pin)] &&
+		     [info exists max_fifo_to_rd_clk_domain_paths_max($reg_name_fifo_data_rd_clk_domain)] &&
+		     [info exists min_fifo_to_rd_clk_domain_paths_min($reg_name_fifo_data_rd_clk_domain)] &&
+		     [info exists max_rd_address_to_rd_data_paths_max($reg_name)] &&
+		     [info exists min_rd_address_to_rd_data_paths_min($reg_name)])} {
+         post_message -type error "Paths not found for resync analysis."
+         return 1
+      }
 		set max_DQS_to_fifo $max_DQS_to_fifo_paths_max($dqs_pin)
 		set min_DQS_to_fifo $min_DQS_to_fifo_paths_min($dqs_pin)
 		set max_fifo_to_rd_clk_domain $max_fifo_to_rd_clk_domain_paths_max($reg_name)
@@ -1783,20 +1804,28 @@ proc hps_sdram_p0_perform_flexible_postamble_timing_analysis {opcs opcname instn
 	
 	set coarse_delay [expr $t(CK)/$dll_length]	
 	set dqsenableextend_regs [list *dq_ddio[*].ubidir_dq_dqs|*|dqs_enable_ctrl~DFFEXTENDDQSENABLE *dq_ddio[*].ubidir_dq_dqs|*|dqs_enable_ctrl~DQSENABLEOUT_DFF]
-	
+	if {$family == "arria v"} {
+		set hps_compensation [expr 0.250 - [hps_sdram_p0_max_in_collection [get_path -rise_to ${instname}|pll|pll|clk_out[0]] "arrival_time"]]
+	} else {
+		set hps_compensation [expr 0.350 - [hps_sdram_p0_max_in_collection [get_path -rise_to ${instname}|pll|pll|clk_out[0]] "arrival_time"]]
+	}
 	# Clock out to DQS path coming back into the FPGA
 	set mem_clock_delay_max [hps_sdram_p0_max_in_collection [get_path -rise_from $pins(pll_write_clock) -rise_to $pins(ck_pins)] "arrival_time"]
 	set mem_clock_delay_min [hps_sdram_p0_min_in_collection [get_path -rise_from $pins(pll_write_clock) -rise_to $pins(ck_pins) -min_path] "arrival_time"]
+
+	set mem_clock_delay_max [expr $mem_clock_delay_max + $hps_compensation]
+
 	set dqs_delay_max  [hps_sdram_p0_max_in_collection [get_path -rise_from $pins(dqs_pins) -fall_to *POSTAMBLE_DFF] "arrival_time"]
 	set dqs_delay_min  [hps_sdram_p0_min_in_collection [get_path -rise_from $pins(dqs_pins) -fall_to *POSTAMBLE_DFF -min_path] "arrival_time"]	
 	set ck_pin_buffer_delay [hps_sdram_p0_round_3dp [expr [hps_sdram_p0_get_min_aiot_delay [lindex $pins(ck_pins) 0]] * 1e9]]
 
-	set return_path_delay_max [expr $mem_clock_delay_max + $dqs_delay_max - ($ck_pin_buffer_delay*1.5)]
-	set return_path_delay_min [expr $mem_clock_delay_min + $dqs_delay_min - ($ck_pin_buffer_delay*1.5)]
+	set return_path_delay_max [expr $mem_clock_delay_max + $dqs_delay_max - ($ck_pin_buffer_delay*1.55)]
+	set return_path_delay_min [expr $mem_clock_delay_min + $dqs_delay_min - ($ck_pin_buffer_delay*1.55)]
 
 	# DQS Enable clk to DQS Enable register
 	set clock_delay_max [hps_sdram_p0_max_in_collection [get_path -rise_from $pins(pll_write_clock) -rise_to $dqsenableextend_regs] "arrival_time"]
 	set clock_delay_min [hps_sdram_p0_min_in_collection [get_path -rise_from $pins(pll_write_clock) -rise_to $dqsenableextend_regs -min_path] "arrival_time"]
+	set clock_delay_max [expr $clock_delay_max + $hps_compensation]
 	set t11_delay_max [hps_sdram_p0_max_in_collection [get_path -rise_from $dqsenableextend_regs -fall_to *POSTAMBLE_DFF] "arrival_time"]
 	set t11_delay_min [hps_sdram_p0_min_in_collection [get_path -rise_from $dqsenableextend_regs -fall_to *POSTAMBLE_DFF -min_path] "arrival_time"]
 
@@ -1874,7 +1903,8 @@ proc hps_sdram_p0_perform_flexible_postamble_timing_analysis {opcs opcname instn
 	
 	set setup_slack [expr $setup_slack - $ldc_tracking_error/2 - $ldc_absolute_error/2]
 	set hold_slack  [expr $hold_slack  - $ldc_tracking_error/2 - $ldc_absolute_error/2]	
-	
+
+
 	##############################
 	# Quantization error
 	##############################

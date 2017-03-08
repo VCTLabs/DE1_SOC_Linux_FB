@@ -1,13 +1,13 @@
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -287,7 +287,7 @@ proc hps_sdram_p0_get_core_full_instance_list {corename} {
 	append inst_regexp ${corename}
 	append inst_regexp {:[A-Za-z0-9\.\\_\[\]\-\$():]+\|}
 	append inst_regexp "${corename}_acv_hard_memphy"
-	append inst_regexp {:umemphy}
+        append inst_regexp {:umemphy}
 
 	foreach_in_collection keeper $allkeepers {
 		set name [ get_node_info -name $keeper ]
@@ -303,8 +303,12 @@ proc hps_sdram_p0_get_core_full_instance_list {corename} {
 
 	if {[ llength $instance_list ] == 0} {
 		post_message -type error "The auto-constraining script was not able to detect any instance for core < $corename >"
-		post_message -type error "Make sure the core < $corename > is instantiated within another component (wrapper)"
-		post_message -type error "and it's not the top-level for your project"
+		post_message -type error "Verify the following:"
+		post_message -type error " The core < $corename > is instantiated within another component (wrapper)"
+		post_message -type error " The core is not the top-level of the project"
+		post_message -type error " The memory interface pins are exported to the top-level of the project"
+		post_message -type error "Alternatively, if you are no longer instantiating core < $corename >,"
+		post_message -type error " clean up any stale SDC_FILE references from the QSF/QIP files."
 	}
 
 	return $instance_list
@@ -1149,16 +1153,28 @@ proc hps_sdram_p0_get_rzq_pins { instname all_rzq_pins } {
 	set_project_mode -always_show_entity_name qsf
 	set rzqpins $rzq_pins
 }
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+
+
+proc hps_sdram_p0_get_acv_read_offset { period dqs_phase dqs_period } {
+
+	set offset [expr abs(90/360.0*$period - $dqs_phase/360.0*$dqs_period)]
+	if {$offset != 0} {
+		set part_period [expr $dqs_phase/360.0*$dqs_period - 0.469/2.0 - 0.12]
+		set offset [max 0.120 $part_period] 
+	}
+
+	return $offset
+}
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -1865,6 +1881,30 @@ proc hps_sdram_p0_get_dqs_phase { dqs_pins } {
 	return $dqs_phase
 }
 
+proc hps_sdram_p0_get_dqs_period { dqs_pins } {
+	set dqs_period -100
+	set dqs0 [lindex $dqs_pins 0]
+	if {$dqs0 != ""} {
+		set dll_id [hps_sdram_p0_traverse_to_dll_id $dqs0 msg_list]
+		if {$dll_id != -1} {
+			set dqs_period_str [get_atom_node_info -key TIME_INPUT_FREQUENCY -node $dll_id]
+			if {[regexp {(.*) ps} $dqs_period_str matched dqs_period_ps] == 1} {
+				set dqs_period [expr $dqs_period_ps/1000.0]
+			} elseif {[regexp {(.*) ps} $dqs_period_str matched dqs_period_ns] == 1} {
+				set dqs_period $dqs_period_ns
+			}
+			
+		}
+	}
+
+	if {$dqs_period < 0} {
+		set dqs_period 0
+		post_message -type critical_warning "Unable to determine DQS delay chain period.  Assuming default setting of $dqs_period"
+	}
+
+	return $dqs_period
+}
+
 proc hps_sdram_p0_get_operating_conditions_number {} {
 	set cur_operating_condition [get_operating_conditions]
 	set counter 0
@@ -2040,7 +2080,7 @@ proc hps_sdram_p0_get_ddr_pins { instname allpins } {
 	set pins(ac_wo_reset_pins) [ concat $pins(add_pins) $pins(ba_pins) $pins(cmd_pins)]
 
 	set pins(afi_ck_pins) ${instname}|p0|umemphy|afi_clk_reg
-	set pins(dqs_enable_regs_pins) ${instname}|p0|umemphy|uio_pads|dq_ddio[0].ubidir_dq_dqs|altdq_dqs2_inst|dqs_enable_ctrl~DQSENABLEOUT_DFF
+	set pins(dqs_enable_regs_pins) ${instname}|p0|umemphy|uio_pads|dq_ddio[*].ubidir_dq_dqs|altdq_dqs2_inst|dqs_enable_ctrl~DQSENABLEOUT_DFF
 	set inst_driver ""
 	set pins(driver_core_ck_pins) ""
 	if {[regexp -nocase {if[0-9]$} $instname] == 1} {
@@ -2318,7 +2358,7 @@ proc hps_sdram_p0_dump_all_pins { ddr_db_par } {
 	puts $FH "#"
 	puts $FH "# Generated by ${::GLOBAL_hps_sdram_p0_corename}_pin_assignments.tcl"
 	puts $FH "#"
-	puts $FH "# This file is for reference only and is not used by Quartus II"
+	puts $FH "# This file is for reference only and is not used by Quartus Prime"
 	puts $FH "#"
 	puts $FH ""
 

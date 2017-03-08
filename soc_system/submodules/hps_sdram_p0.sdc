@@ -1,13 +1,13 @@
-# (C) 2001-2013 Altera Corporation. All rights reserved.
-# Your use of Altera Corporation's design tools, logic functions and other 
+# (C) 2001-2016 Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions and other 
 # software and tools, and its AMPP partner logic functions, and any output 
 # files any of the foregoing (including device programming or simulation 
 # files), and any associated documentation or information are expressly subject 
-# to the terms and conditions of the Altera Program License Subscription 
-# Agreement, Altera MegaCore Function License Agreement, or other applicable 
+# to the terms and conditions of the Intel Program License Subscription 
+# Agreement, Intel MegaCore Function License Agreement, or other applicable 
 # license agreement, including, without limitation, that your use is for the 
-# sole purpose of programming logic devices manufactured by Altera and sold by 
-# Altera or its authorized distributors.  Please refer to the applicable 
+# sole purpose of programming logic devices manufactured by Intel and sold by 
+# Intel or its authorized distributors.  Please refer to the applicable 
 # agreement for further details.
 
 
@@ -110,12 +110,12 @@ set t(wru_output_max_delay_internal) [expr $t(WL_DCD) + $t(WL_JITTER)*$t(WL_JITT
 set data_output_max_delay [ hps_sdram_p0_round_3dp [ expr $t(wru_output_max_delay_external) + $t(wru_output_max_delay_internal)]]
 
 # Maximum delay on data input pins
-set t(rdu_input_max_delay_external) [expr $t(DQSQ) + $board(intra_DQS_group_skew) + $board(DQ_DQS_skew)]
+set t(rdu_input_max_delay_external) [expr $t(DQSQ) + $board(intra_DQS_group_skew) + $board(DQ_DQS_skew) + $ISI(READ_DQ)/2 + $ISI(READ_DQS)/2]
 set t(rdu_input_max_delay_internal) [expr $DQSpathjitter*$DQSpathjitter_setup_prop + $SSN(rel_pushout_i)]
 set data_input_max_delay [ hps_sdram_p0_round_3dp [ expr $t(rdu_input_max_delay_external) + $t(rdu_input_max_delay_internal) ]]
 
 # Minimum delay on data input pins
-set t(rdu_input_min_delay_external) [expr $board(intra_DQS_group_skew) - $board(DQ_DQS_skew)]
+set t(rdu_input_min_delay_external) [expr $board(intra_DQS_group_skew) - $board(DQ_DQS_skew) + $ISI(READ_DQ)/2 + $ISI(READ_DQS)/2]
 set t(rdu_input_min_delay_internal) [expr $t(DCD) + $DQSpathjitter*(1.0-$DQSpathjitter_setup_prop) + $SSN(rel_pullin_i)]
 set data_input_min_delay [ hps_sdram_p0_round_3dp [ expr - $t(rdu_input_min_delay_external) - $t(rdu_input_min_delay_internal) ]]
 
@@ -322,11 +322,13 @@ foreach { inst } $instances {
 	# This is the CK clock
 	foreach { ck_pin } $ck_pins {
 		create_generated_clock -multiply_by 1 -source $pll_write_clock -master_clock "$local_pll_write_clk" $ck_pin -name $ck_pin
+		set_clock_uncertainty -to [ get_clocks $ck_pin ] $t(WL_JITTER)
 	}
 
 	# This is the CK#clock
 	foreach { ckn_pin } $ckn_pins {
 		create_generated_clock -multiply_by 1 -invert -source $pll_write_clock -master_clock "$local_pll_write_clk" $ckn_pin -name $ckn_pin
+		set_clock_uncertainty -to [ get_clocks $ckn_pin ] $t(WL_JITTER)
 	}
 	
 	# ------------------- #
@@ -468,7 +470,7 @@ foreach { inst } $instances {
 					set_output_delay -min [hps_sdram_p0_round_3dp [expr {$ac_min_delay + $t(CK)/2}]] -clock [get_clocks $ck_pin] $ac_port -add_delay
 
 					# Specifies the maximum delay difference between the DQS pin and the address/control pins:
-					set_output_delay -max [hps_sdram_p0_round_3dp [expr {$ac_min_delay + $t(CK)/2}]] -clock [get_clocks $ck_pin] $ac_port -add_delay
+					set_output_delay -max [hps_sdram_p0_round_3dp [expr {$ac_max_delay + $t(CK)/2}]] -clock [get_clocks $ck_pin] $ac_port -add_delay
 				}
 			}
 		}
@@ -490,11 +492,13 @@ foreach { inst } $instances {
 		set_multicycle_path -to [get_registers ${prefix}|*p0|*umemphy|*uio_pads|*uaddr_cmd_pads|*clock_gen[*].umem_ck_pad|*] -end -setup 4
 		set_multicycle_path -to [get_registers ${prefix}|*p0|*umemphy|*uio_pads|*uaddr_cmd_pads|*clock_gen[*].umem_ck_pad|*] -end -hold 4
 	}
+
 	
 
 
 
 
+	set read_fifo_read_dff ${prefix}|*p0|*altdq_dqs2_inst|*read_fifo~OUTPUT_DFF_*
 	set read_fifo_write_address_dff ${prefix}|*p0|*altdq_dqs2_inst|*read_fifo~WRITE_ADDRESS_DFF
 	set read_fifo_read_address_dff ${prefix}|*p0|*altdq_dqs2_inst|*read_fifo~READ_ADDRESS_DFF
 	set lfifo_in_read_en_dff ${prefix}|*p0|*lfifo~LFIFO_IN_READ_EN_DFF
@@ -547,6 +551,7 @@ foreach { inst } $instances {
 		set_false_path -from ${prefix}|*s0|* -to [get_clocks $local_pll_write_clk]
 		set_false_path -from [get_clocks $local_pll_write_clk] -to ${prefix}|*s0|*hphy_bridge_s0_translator|av_readdata_pre[*]
 
+		set_false_path -from $read_fifo_read_dff -to $hphy_ff
 
 	}
 
@@ -609,8 +614,7 @@ foreach { inst } $instances {
 	# -                            - #
 	# ------------------------------ #
 	if {$fit_flow} {
-		set_min_delay -from {altera_reserved_tck} -to {altera_reserved_tck} 0.500
-
+	
 
 
 	}
