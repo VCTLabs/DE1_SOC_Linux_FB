@@ -7,47 +7,49 @@ Demo project for DE1-SoC board, updated the Quartus/Qsys 16.1.
 Environment setup
 =================
 
-Add this to your ~/.bashrc file:
+Add this to your ~/.bashrc file::
 
-export ALTERA_PATH=$HOME/intelFPGA/16.1
-export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+  export ALTERA_PATH=$HOME/intelFPGA/16.1
+  export SOCEDS_DEST_ROOT=$ALTERA_PATH/embedded
+  
+  export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
+  
+  export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
+  export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
+  export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
+  
+  export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
+  export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
+  
+  . $SOCEDS_DEST_ROOT/env.sh
+  
+  export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
-export ALTERA_LITE_PATH=$HOME/intelFPGA_lite/16.1
-
-export QUARTUS_ROOTDIR_OVERRIDE=$ALTERA_LITE_PATH/quartus
-export QUARTUS_ROOTDIR=$QUARTUS_ROOTDIR
-export QSYS_ROOTDIR=$QUARTUS_ROOTDIR/sopc_builder
-
-export SOPC_KIT_NIOS2_OVERRIDE=$ALTERA_LITE_PATH/nios2eds
-export SOPC_KIT_NIOS2=$SOPC_KIT_NIOS2_OVERRIDE
-
-. $SOCEDS_DEST_ROOT/env.sh
-
-export BSP_EDITOR_BINDIR=$HOME/$SOCEDS_DEST_ROOT/host_tools/altera/preloadergen
 
 ================
 
 When a new shell is opened the path is setup. It depends on the environment.
 
-For 64b Ubuntu 16.04 with user testy it sets these exports:
+For 64b Ubuntu 16.04 with user testy it sets these exports::
 
-/home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
-/home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
-/home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
-/home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
-/home/testy/intelFPGA/16.1/embedded/ds-5/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
-/home/testy/intelFPGA_lite/16.1/nios2eds/bin
-/home/testy/intelFPGA_lite/16.1/quartus/bin
-/home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+  /home/testy/intelFPGA/16.1/embedded/host_tools/mentor/gnu/arm/baremetal/bin
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/preloadergen
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkimage
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/mkpimage
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/device_tree
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/diskutils
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/imagecat
+  /home/testy/intelFPGA/16.1/embedded/host_tools/altera/secureboot
+  /home/testy/intelFPGA/16.1/embedded/host_tools/gnu/dtc
+  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/gcc/bin
+  /home/testy/intelFPGA/16.1/embedded/ds-5/sw/ARMCompiler5.06u3/bin
+  /home/testy/intelFPGA/16.1/embedded/ds-5/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/sdk2/bin
+  /home/testy/intelFPGA_lite/16.1/nios2eds/bin
+  /home/testy/intelFPGA_lite/16.1/quartus/bin
+  /home/testy/intelFPGA_lite/16.1/quartus/sopc_builder/bin
+
 
 Update Process
 ==============
@@ -55,23 +57,22 @@ Update Process
 Upgrade project IP cores, re-generate the VERILOG code (using Qsys) then rebuild
 with Quartus tools::
 
-$ qsys-generate soc_system.qsys --upgrade-ip-cores
-$ qsys-generate soc_system.qsys --synthesis=VERILOG
-$ quartus_map  DE1_SOC_Linux_FB
-$ quartus_fit  DE1_SOC_Linux_FB
-$ quartus_asm  DE1_SOC_Linux_FB
+  $ qsys-generate soc_system.qsys --upgrade-ip-cores
+  $ qsys-generate soc_system.qsys --synthesis=VERILOG
+  $ quartus_map  DE1_SOC_Linux_FB
+  $ quartus_fit  DE1_SOC_Linux_FB
+  $ quartus_asm  DE1_SOC_Linux_FB
 
 Convert the .sof file to a firmware blob::
 
-$ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
+  $ quartus_cpf -c DE1_SOC_Linux_FB.sof soc_system.rbf
 
-At this point we have these essential generated files:
-=====================================================
+At this point we have these essential generated files::
 
-soc_system.rbf
-soc_system.sopcinfo
-soc_system/soc_system.html
-soc_system/soc_system_generation.rpt
+  soc_system.rbf
+  soc_system.sopcinfo
+  soc_system/soc_system.html
+  soc_system/soc_system_generation.rpt
 
 Generate BSP dir
 ================
@@ -79,7 +80,7 @@ Generate BSP dir
 You can run the bsp editor GUI, but the easy way for u-boot is to run the
 following command from the project directory::
 
-$ bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
+  $ bsp-create-settings --type spl --bsp-dir build --preloader-settings-dir hps_isw_handoff/soc_system_hps_0/ --settings build/settings.bsp
 
 Now you can use the "build" dir above (ie, where the settings.bsp file is) in
 the following u-boot command to update the board headers.  Once these headers
@@ -96,8 +97,8 @@ The script args are essentially <device_family> , <path/to/project/dir> ,
 
 Example command assuming u-boot and project source dirs are parallel::
 
-$ cd path/to/u-boot
-$ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
+  $ cd path/to/u-boot
+  $ ./arch/arm/mach-socfpga/qts-filter.sh cyclone5 ../de1-soc-audio/DE1_SOC_Linux_Audio ../de1-soc-audio/DE1_SOC_Linux_Audio/build/ board/terasic/de0-nano-soc/qts/
 
 
 
@@ -125,14 +126,14 @@ Branch: v2016.03-yocto
 
 ::
 
-$ git clone https://github.com/VCTLabs/u-boot.git
-$ cd u-boot/
-$ git checkout v2016.03-yocto
-$ export CC=armv7a-hardfloat-linux-gnueabi-
-$ make ARCH=arm CROSS_COMPILE=${CC} distclean
-$ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
-$ make ARCH=arm CROSS_COMPILE=${CC}
-$ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
+  $ git clone https://github.com/VCTLabs/u-boot.git
+  $ cd u-boot/
+  $ git checkout v2016.03-yocto
+  $ export CC=armv7a-hardfloat-linux-gnueabi-
+  $ make ARCH=arm CROSS_COMPILE=${CC} distclean
+  $ make ARCH=arm CROSS_COMPILE=${CC} socfpga_de0_nano_soc_defconfig
+  $ make ARCH=arm CROSS_COMPILE=${CC}
+  $ sudo dd if=./u-boot-with-spl.sfp of=/dev/sdX3
 
 where sdX is your sdcard device and CC is your toolchain prefix.  Now try the qts script and rebuild
 using all 3 make commands.
@@ -175,7 +176,7 @@ includes the meta-altera BSP layer plus more.  See the conf/local sample
 configs in meta-altera to get started building (just copy them to your fresh
 build_dir/conf and change the path to downloads and state cache).  The comand::
 
-$ bitbake core-image-minimal
+  $ bitbake core-image-minimal
 
 will build a nice console image with all the custom content (using the local
 config file examples) and one of the two kernel versions.  See the branch
